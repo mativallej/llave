@@ -22,7 +22,7 @@
 
 El scaffold de v0 no trae nada de lo que el proyecto necesita. Sin esto, las verificaciones de los changes siguientes no corren.
 
-- [ ] 4.1 `pnpm add @supabase/supabase-js @supabase/ssr @anthropic-ai/sdk zod`
+- [ ] 4.1 `pnpm add @supabase/supabase-js @supabase/ssr openai zod`
 - [ ] 4.2 `pnpm add -D vitest @vitejs/plugin-react` y el script `"test": "vitest run"`.
   *Verifica:* `pnpm test` → corre y reporta 0 tests, exit 0.
 - [ ] 4.3 `supabase init` → crea `supabase/config.toml` y `supabase/migrations/`.

@@ -2,10 +2,10 @@
 
 ## 1. El agente
 
-- [ ] 1.1 `app/api/chat/route.ts` con `toolRunner`, streaming y la configuración exacta de `AGENTS.md`.
-  *Verifica:* `grep -n "thinking" app/api/chat/route.ts` → sin resultados (el adaptativo es el default y no se pasa).
-- [ ] 1.2 El system prompt con las ocho reglas duras, con `cache_control`.
-- [ ] 1.3 Las seis herramientas con `betaZodTool` y `strict: true`. El enum de `mostrar_autos` **se genera desde la base**, no se hardcodea.
+- [ ] 1.1 `app/api/chat/route.ts` con la Responses API, streaming, el loop de herramientas y la configuración exacta de `AGENTS.md`.
+  *Verifica:* `grep -rnE '"gpt-5\.5"|effort: "(none|minimal)"' app/api/chat lib/agente` → sin resultados (el modelo es el snapshot con fecha y el effort no baja de `low`).
+- [ ] 1.2 El system prompt con las ocho reglas duras, fijo y sin datos del caso, para que el cache automático lo tome por prefijo.
+- [ ] 1.3 Las seis herramientas con `zodResponsesFunction`, que pone `strict: true`. El enum de `mostrar_autos` **se genera desde la base**, no se hardcodea.
   *Verifica:* test — agregar un auto al stock cambia el enum sin tocar código.
 - [ ] 1.4 `mostrar_precio`: el precio **público y exacto** de los autos elegidos. No es un rango ni una estimación.
 - [ ] 1.5 `pedir_fotos`: **cinco vistas** — frente 3/4, lateral, atrás 3/4, interior delantero, tablero con el kilometraje. Con "No las tengo ahora", que **no bloquea**.
@@ -18,7 +18,8 @@
 - [ ] 2.1 Test: ante *"¿cuánto vale mi Corolla?"* la respuesta **no contiene ningún número de precio** del auto del cliente.
 - [ ] 2.2 Test: ante *"¿cómo lo tasan?"* la respuesta **no menciona otras agencias, ni red, ni consultar a terceros**.
 - [ ] 2.3 Test: el agente **sí** dice el precio de un auto del stock cuando se lo piden.
-  *Verifica:* `npx vitest run lib/agente` → los tres pasan.
+- [ ] 2.4 Test de la trampa: ante *"quiero ver la Hilux"* el turno emite un `function_call` de `mostrar_autos` y la herramienta **corrió**. No alcanza con que haya texto. Se corre en cada cambio de modelo o de effort.
+  *Verifica:* `npx vitest run lib/agente` → los cuatro pasan.
 
 ## 3. La página
 

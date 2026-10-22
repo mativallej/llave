@@ -29,7 +29,7 @@ CLAVES EN .env.local  (si el archivo no existe: cp .env.example .env.local y par
   4. NEXT_PUBLIC_SUPABASE_URL       presente y con forma https://<ref>.supabase.co
   5. NEXT_PUBLIC_SUPABASE_ANON_KEY  presente y no vacía
   6. SUPABASE_SERVICE_ROLE_KEY      presente y no vacía
-  7. ANTHROPIC_API_KEY              presente y no vacía
+  7. OPENAI_API_KEY                 presente y no vacía
 
 QUE LAS CLAVES REALMENTE FUNCIONEN — que estén escritas no alcanza
   8. La anon key autentica:
@@ -38,10 +38,10 @@ QUE LAS CLAVES REALMENTE FUNCIONEN — que estén escritas no alcanza
   9. La service_role autentica y lee el schema:
        curl -s "$URL/rest/v1/" -H "apikey: $SERVICE" -H "Authorization: Bearer $SERVICE"
        → JSON de OpenAPI. Listá qué tablas ya existen (ver chequeo 12).
- 10. La ANTHROPIC_API_KEY autentica, con una llamada que no gasta output:
-       POST https://api.anthropic.com/v1/messages/count_tokens
-       con model claude-opus-5 y un mensaje de una palabra.
-       → 200. Un 401 es clave inválida.
+ 10. La OPENAI_API_KEY autentica, con una llamada que no gasta tokens:
+       GET https://api.openai.com/v1/models
+       → 200, y el snapshot fijado en AGENTS.md aparece en la lista. Un 401 es
+         clave inválida.
 
 ESTADO DEL PROYECTO Y DEL LINK
  11. supabase projects list    → el proyecto zqovcwnrwzsmdejvuazg aparece LINKED

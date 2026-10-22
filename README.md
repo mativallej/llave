@@ -46,7 +46,7 @@ The test, before building anything: **does the customer know what is next, and w
 | Framework | Next.js 16 (App Router) · React 19 · TypeScript 5.7 |
 | Styling | Tailwind 4 + shadcn/ui |
 | Data | Supabase — Postgres + Storage + Auth (admin only) |
-| Agent | `@anthropic-ai/sdk` · `claude-opus-5` |
+| Agent | `openai` (Responses API) · `gpt-5.5-2026-04-23` |
 | MCP | `@modelcontextprotocol/sdk` — HTTP at `/api/mcp`, stdio for development |
 | Deploy | Vercel |
 
@@ -58,7 +58,7 @@ No ORM on top of Supabase. No job queue. No charting library — the dashboard i
 
 - Node 20+, pnpm 10+
 - A Supabase project
-- An Anthropic API key
+- An OpenAI API key
 
 ### Steps
 
@@ -67,7 +67,7 @@ git clone https://github.com/mativallej/llave.git
 cd llave
 pnpm install
 
-cp .env.example .env.local     # three Supabase keys + the Anthropic key
+cp .env.example .env.local     # three Supabase keys + the OpenAI key
 supabase login
 supabase link --project-ref <your-project-ref>
 supabase db push

@@ -8,7 +8,7 @@
 
 ## 2. El alta por foto y línea
 
-- [ ] 2.1 Cliente de Anthropic en `lib/agente/cliente.ts` con la configuración de `AGENTS.md` — thinking adaptativo, `effort: "low"`, sin `eager_input_streaming`.
+- [ ] 2.1 Cliente de OpenAI en `lib/agente/cliente.ts` con la configuración de `AGENTS.md` — el snapshot con fecha, `reasoning: { effort: "low" }`, `store: false`.
 - [ ] 2.2 Subida múltiple de fotos a Storage con drag & drop **y desde la cámara**, con signed URLs.
   *Verifica:* en un iPhone, el input abre la cámara.
 - [ ] 2.3 `extraerFicha(linea, urls)`: devuelve los campos deducidos **más la lista de los que no pudo deducir**. Nunca completa un campo que no está en la evidencia.

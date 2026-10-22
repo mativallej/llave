@@ -39,6 +39,6 @@ Por eso el alta **no es un formulario: es una foto y una línea de texto.**
 
 **Dependencia:** `fundacion-datos`.
 
-**Reutiliza el agente** del canal público para leer la línea y las fotos, así que el cliente de Anthropic y el helper de visión se montan acá y `canal-publico` los usa.
+**Reutiliza el agente** del canal público para leer la línea y las fotos, así que el cliente de OpenAI y el helper de visión se montan acá y `canal-publico` los usa.
 
 **Fuera de alcance:** el watcher de la carpeta de Drive donde Abelardo deja fotos hoy, y la baja automática al cerrarse una venta — esa se conecta en `caso-seguimiento`, que es donde una venta consume un auto.
