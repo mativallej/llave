@@ -1,25 +1,12 @@
-import { Header } from "@/components/header"
-import { Hero } from "@/components/hero"
-import { IntentCards } from "@/components/intent-cards"
-import { TrustSignals } from "@/components/trust-signals"
-import { WhatWeDo } from "@/components/what-we-do"
-import { HowItWorks } from "@/components/how-it-works"
-import { DeliveriesPreview } from "@/components/deliveries-preview"
-import { Footer } from "@/components/footer"
-import { WhatsAppStickyButton } from "@/components/whatsapp-sticky-button"
-
-export default function HomePage() {
+// Placeholder until `canal-publico` builds the real landing.
+export default function Page() {
   return (
-    <main className="min-h-dvh bg-background">
-      <Header />
-      <Hero />
-      <IntentCards />
-      <TrustSignals />
-      <WhatWeDo />
-      <HowItWorks />
-      <DeliveriesPreview />
-      <Footer />
-      <WhatsAppStickyButton />
+    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-3 px-4">
+      <h1 className="text-2xl font-semibold">Falkenberg Meyer Automotores</h1>
+      <p className="text-muted-foreground">
+        Estamos armando este canal. La página la construye el change{" "}
+        <code>canal-publico</code>.
+      </p>
     </main>
   )
 }
