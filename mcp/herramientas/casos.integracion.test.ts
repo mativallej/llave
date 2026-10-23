@@ -94,7 +94,7 @@ describe.skipIf(!conBase)("mover un caso por el MCP y por el link deja lo mismo"
     const [lado, otroLado] = InMemoryTransport.createLinkedPair()
     cliente = new Client({ name: "prueba", version: "1.0.0" })
     await Promise.all([
-      crearServidor({ operador: ANDRES, archivosLocales: false, origen: "https://llave.test" }).connect(lado),
+      crearServidor({ operador: ANDRES, origen: "https://llave.test" }).connect(lado),
       cliente.connect(otroLado),
     ])
   }, 60_000)

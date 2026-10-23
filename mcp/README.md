@@ -22,7 +22,7 @@ https://<dominio>/api/mcp?token=<token>
 
 Esa URL es la llave entera: no se comparte ni se pega en un chat.
 
-**En la compu, por stdio** (desarrollo, o un operador con Claude Code y el repo clonado). Acá las fotos pueden ser rutas a archivos:
+**En la compu, por stdio** (desarrollo, o un operador con Claude Code y el repo clonado):
 
 ```bash
 claude mcp add llave -e LLAVE_TOKEN=<token> -- pnpm --silent --dir /ruta/a/llave mcp:stdio
@@ -41,7 +41,7 @@ Imprime el token una sola vez. Para revocarlo se borra su fila de la tabla `oper
 
 ## Las fotos
 
-Una foto pegada en el chat de Claude **no le llega a las herramientas**: Claude la ve, pero no puede pasarle el archivo a un servidor. `cargar_auto` recibe **links https** a las fotos (o rutas de archivo por stdio). El servidor las baja, chequea que sean JPG, PNG o WEBP de hasta 10 MB y las copia al bucket privado. Si las fotos están solo en el teléfono, el camino corto es el admin: `/admin/stock`, "Sacar foto".
+**Por el MCP no se cargan fotos, por ahora.** Una foto pegada en el chat de Claude no le llega a ninguna herramienta: Claude la ve, pero no puede pasarle el archivo a un servidor. Por eso ninguna herramienta recibe fotos, ni pegadas ni por link. Se suben desde el admin: `/admin/stock`, "Sacar foto", que anda en el teléfono. `ver_auto` sí devuelve links a las fotos que ya tiene un auto.
 
 ## Las herramientas
 
@@ -53,11 +53,22 @@ Una foto pegada en el chat de Claude **no le llega a las herramientas**: Claude 
 
 **Escritura** (una cosa cada una)
 
-- `cargar_auto(linea, fotos)`: da de alta un auto con la línea y las fotos. Deduce lo que está en la evidencia, devuelve lo que falta confirmar y lo deja sin publicar ni precio.
+- `cargar_auto(linea)`: da de alta un auto con la línea. Deduce lo que dice la línea, devuelve lo que falta confirmar y lo deja sin publicar, sin precio y sin fotos.
 - `completar_auto(slug, marca?, modelo?, version?, anio?, km?, segmento?)`: completa o corrige la ficha.
 - `poner_precio(slug, precio)`: el precio público, en una llamada propia. Lo dicta una persona.
 - `publicar_auto(slug)`: falla si falta el precio o un dato que ve el cliente.
 - `despublicar_auto(slug)`: lo saca de la página sin marcarlo vendido.
 - `marcar_vendido(slug)`: vendido y despublicado en la misma operación.
 
-Los changes que construyen el caso, el seguimiento y el tablero registran sus propias herramientas en `mcp/servidor.ts`.
+**Casos** (de `caso-seguimiento`)
+
+- Lectura: `listar_casos(estado?, antiguedad?)`, `ver_caso(ref)`, `historial_telefono(telefono)`. Ninguna devuelve la tasación.
+- Escritura, un paso cada una: `agendar_cita(ref, fecha)`, `marcar_inspeccionado(ref)`, `cargar_tasacion(ref, valor_toma)` (solo rol `falkenberg`), `publicar_propuesta(ref)`, `cerrar_caso(ref, cerro, motivo?, por_silencio?)`, `agregar_nota(ref, texto)`, `marcar_venta_nueva(ref, respuesta)`.
+- Lo que no tiene herramienta (llegaron las fotos, no vino, se consiguió el auto, aceptó la propuesta) se hace desde el link del caso, que devuelve `ver_caso`.
+
+**Tablero** (de `tablero-metricas`)
+
+- `metricas(periodo)`: las ocho métricas con numerador y denominador, y el embudo.
+- `avisos()`: renegociaciones, ventas sin preguntar y si la semana se llenó.
+
+Cada change que construye algo registra sus herramientas en `mcp/servidor.ts`.

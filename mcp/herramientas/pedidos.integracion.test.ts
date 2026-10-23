@@ -35,7 +35,7 @@ describe.skipIf(!conBase)("las tools de lectura del canal contra la base", () =>
     const [lado, otroLado] = InMemoryTransport.createLinkedPair()
     cliente = new Client({ name: "prueba", version: "1.0.0" })
     await Promise.all([
-      crearServidor({ operador, archivosLocales: false, origen: "https://llave.test" }).connect(lado),
+      crearServidor({ operador, origen: "https://llave.test" }).connect(lado),
       cliente.connect(otroLado),
     ])
   }, 30_000)

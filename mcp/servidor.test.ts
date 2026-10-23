@@ -29,7 +29,7 @@ function propiedades(schema: unknown): { nombre: string; tipo: unknown; opciones
 
 describe("el catálogo del MCP", () => {
   it("expone las tools de stock, las de lectura del canal, las del caso y las del tablero", async () => {
-    const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
+    const { tools } = await (await conectar(crearServidor({ operador: vendedor }))).listTools()
     expect(tools.map((t) => t.name).sort()).toEqual(
       [
         "agendar_cita",
@@ -60,7 +60,7 @@ describe("el catálogo del MCP", () => {
   })
 
   it("ninguna tool pide ni devuelve un valor de toma, una estimación ni el margen, salvo cargar_tasacion", async () => {
-    const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
+    const { tools } = await (await conectar(crearServidor({ operador: vendedor }))).listTools()
     const prohibido = /valor|toma|tasac|estim|margen|ganancia|comisi/i
     // The one exception: Andrés writing his own judgement. It takes the number and says nothing else back.
     const excepcion = new Set(["cargar_tasacion", "cargar_tasacion.valor_toma"])
@@ -74,14 +74,14 @@ describe("el catálogo del MCP", () => {
   })
 
   it("cargar_tasacion es solo de falkenberg: un vendedor no la puede correr", async () => {
-    const cliente = await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))
+    const cliente = await conectar(crearServidor({ operador: vendedor }))
     const resultado = await cliente.callTool({ name: "cargar_tasacion", arguments: { ref: "LL-0001", valor_toma: 1 } })
     expect(resultado.isError).toBe(true)
     expect(JSON.stringify(resultado.content)).toMatch(/solo para falkenberg/)
   })
 
   it("ningún inputSchema tiene un campo que sea una instrucción para interpretar", async () => {
-    const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
+    const { tools } = await (await conectar(crearServidor({ operador: vendedor }))).listTools()
     // The only free strings allowed are data: the car's line, a search filter, an id, the ficha fields, a
     // phone, a date, a note and the reason a case was lost. A new free-text field has to be added here on
     // purpose. A closed list of options isn't free text.
@@ -108,7 +108,7 @@ describe("el catálogo del MCP", () => {
   })
 
   it("las tools de lectura se declaran de solo lectura, y lo que no se deshace como destructivo", async () => {
-    const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
+    const { tools } = await (await conectar(crearServidor({ operador: vendedor }))).listTools()
     const hint = (nombre: string) => tools.find((t) => t.name === nombre)!.annotations
     const lecturas = ["buscar_stock", "ver_auto", "stock_desactualizado", "ver_pedido", "listar_pedidos_del_dia"]
     for (const lectura of [...lecturas, "listar_casos", "ver_caso", "historial_telefono", "metricas", "avisos"]) {
@@ -121,8 +121,20 @@ describe("el catálogo del MCP", () => {
     }
   })
 
+  it("ninguna tool recibe fotos: ni links, ni rutas, ni archivos", async () => {
+    const { tools } = await (await conectar(crearServidor({ operador: vendedor }))).listTools()
+    for (const tool of tools) {
+      for (const { nombre } of propiedades(tool.inputSchema)) {
+        expect(`${tool.name}.${nombre}`).not.toMatch(/\.(fotos?|imagen(es)?|url|link|ruta|archivo)s?$/i)
+      }
+    }
+    expect((await conectar(crearServidor({ operador: vendedor }))).getInstructions()).toMatch(
+      /no se cargan fotos[^]*\/admin\/stock/,
+    )
+  })
+
   it("las instrucciones del servidor dicen que no estima y que el valor de toma lo pone Andrés", async () => {
-    const cliente = await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))
+    const cliente = await conectar(crearServidor({ operador: vendedor }))
     const instrucciones = cliente.getInstructions() ?? ""
     expect(instrucciones).toMatch(/No estimás nunca el valor del auto que entrega un cliente/)
     expect(instrucciones).toMatch(/lo pone Andrés después de ver el auto en persona/)
@@ -146,7 +158,7 @@ describe("el catálogo del MCP", () => {
           },
         }),
       ],
-      { operador: vendedor, archivosLocales: false },
+      { operador: vendedor },
     )
     const resultado = await (await conectar(servidor)).callTool({ name: "solo_falkenberg", arguments: {} })
     expect(resultado.isError).toBe(true)

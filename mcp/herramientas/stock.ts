@@ -8,7 +8,6 @@ import {
   despublicarAuto,
   diasDesde,
   faltantesDe,
-  importarFotos,
   listarStock,
   marcarVendido,
   nombreAuto,
@@ -88,22 +87,18 @@ export const herramientasStock = [
   definir({
     nombre: "cargar_auto",
     descripcion:
-      "Da de alta un auto a partir de la línea que mandó el vendedor y de las fotos. Deduce lo que está en la línea y en las fotos, nunca inventa un dato, y devuelve lo que falta confirmar. El auto queda sin publicar y sin precio.",
+      "Da de alta un auto a partir de la línea que mandó el vendedor. Deduce lo que dice la línea, nunca inventa un dato, y devuelve lo que falta confirmar. El auto queda sin publicar, sin precio y sin fotos: las fotos se suben desde /admin/stock.",
     lectura: false,
     entrada: {
       linea: z.string().min(1).describe("La línea tal como la mandaron, por ejemplo 'Entró un Corolla XEI 2019 con 78 mil'"),
-      fotos: z
-        .array(z.string())
-        .max(12)
-        .describe("Links https a las fotos (o rutas absolutas a archivos si el servidor corre en la compu del operador)"),
     },
-    ejecutar: async ({ linea, fotos }, { archivosLocales }) => {
-      const rutas = await importarFotos(fotos, { archivosLocales })
-      const { auto, faltantes } = await crearAutoDesdeLinea(linea, rutas)
+    // No photos through the MCP for now: they're uploaded from /admin/stock.
+    ejecutar: async ({ linea }) => {
+      const { auto, faltantes } = await crearAutoDesdeLinea(linea, [])
       return {
         ...resumen(auto),
-        fotos: rutas.length,
         falta: ["precio", ...faltantes],
+        fotos: "Se suben desde /admin/stock, con Sacar foto.",
         siguiente:
           faltantes.length > 0
             ? "Confirmá lo que falta con completar_auto, después poner_precio y publicar_auto."

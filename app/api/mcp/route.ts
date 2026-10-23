@@ -20,7 +20,7 @@ async function manejar(pedido: Request): Promise<Response> {
     )
   }
 
-  const servidor = crearServidor({ operador, archivosLocales: false, origen: new URL(pedido.url).origin })
+  const servidor = crearServidor({ operador, origen: new URL(pedido.url).origin })
   const transporte = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,

@@ -1,5 +1,4 @@
 // The MCP over stdio, for local development and for an operator running Claude Code on their own machine.
-// Here the photos can also be local file paths.
 //
 //   LLAVE_TOKEN=<token> pnpm mcp:stdio
 //
@@ -15,7 +14,7 @@ async function arrancar() {
     console.error("LLAVE_TOKEN no es un token de operador válido. Se emite con scripts/crear-operador.mts.")
     process.exit(1)
   }
-  await crearServidor({ operador, archivosLocales: true }).connect(new StdioServerTransport())
+  await crearServidor({ operador }).connect(new StdioServerTransport())
   console.error(`MCP de Llave por stdio, operando como ${operador.nombre} (${operador.rol}).`)
 }
 
