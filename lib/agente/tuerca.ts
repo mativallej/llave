@@ -165,6 +165,8 @@ export async function* turno(entrada: EntradaTurno): AsyncGenerator<EventoTurno>
   const { definiciones, esquemas: s } = herramientas(entrada.stock)
   let pedido: Pedido = structuredClone(entrada.pedido)
   let textoTotal = ""
+  // Text written after a tool call continues the same message: it needs a space, also while streaming.
+  let separar = false
 
   const input: ResponseInputItem[] = [
     ...entrada.historial.map((m) => aEntrada(m, entrada.urlDeFoto)),
@@ -188,6 +190,11 @@ export async function* turno(entrada: EntradaTurno): AsyncGenerator<EventoTurno>
       )
       for await (const evento of flujo) {
         if (evento.type === "response.output_text.delta") {
+          if (separar && textoTotal && !/\s$/.test(textoTotal) && !/^\s/.test(evento.delta)) {
+            textoTotal += " "
+            yield { tipo: "texto", delta: " " }
+          }
+          separar = false
           textoTotal += evento.delta
           yield { tipo: "texto", delta: evento.delta }
         } else if (evento.type === "response.completed") {
@@ -216,7 +223,7 @@ export async function* turno(entrada: EntradaTurno): AsyncGenerator<EventoTurno>
       for (const evento of eventos) yield evento
       input.push({ type: "function_call_output", call_id: llamada.call_id, output: resultado })
     }
-    if (textoTotal && !textoTotal.endsWith(" ")) textoTotal += " "
+    separar = true
   }
 
   yield { tipo: "fin", texto: textoTotal.trim(), pedido }

@@ -399,7 +399,7 @@ export function Canal({
                   aria-label={CONTENIDO.placeholder}
                   rows={conversando ? 1 : 3}
                   maxLength={2000}
-                  className="min-h-0 flex-1 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+                  className="min-h-0 flex-1 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent"
                 />
                 <Button type="submit" size="icon" aria-label={CONTENIDO.enviar} disabled={escribiendo || !texto.trim()}>
                   <ArrowUp />
