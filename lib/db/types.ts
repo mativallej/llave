@@ -313,6 +313,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      crear_pedido: {
+        Args: {
+          p_auto_busca: string
+          p_auto_entrega: Json
+          p_auto_ids: string[]
+          p_estado: string
+          p_meta: Json
+          p_nombre: string
+          p_precio_salida: number
+          p_salida: string
+          p_telefono: string
+          p_token_cliente: string
+          p_token_operador: string
+          p_zona: string
+        }
+        Returns: {
+          caso_creado_en: string
+          caso_id: string
+          caso_ref: string
+        }[]
+      }
       nueva_ref: { Args: never; Returns: string }
     }
     Enums: {
