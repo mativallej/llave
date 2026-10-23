@@ -28,7 +28,7 @@ function propiedades(schema: unknown): { nombre: string; tipo: unknown }[] {
 }
 
 describe("el catálogo del MCP", () => {
-  it("expone las tools de stock de esta tanda", async () => {
+  it("expone las tools de stock y las de lectura del canal", async () => {
     const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
     expect(tools.map((t) => t.name).sort()).toEqual(
       [
@@ -36,11 +36,13 @@ describe("el catálogo del MCP", () => {
         "cargar_auto",
         "completar_auto",
         "despublicar_auto",
+        "listar_pedidos_del_dia",
         "marcar_vendido",
         "poner_precio",
         "publicar_auto",
         "stock_desactualizado",
         "ver_auto",
+        "ver_pedido",
       ].sort(),
     )
   })
@@ -60,7 +62,7 @@ describe("el catálogo del MCP", () => {
     const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
     // The only free strings allowed are data: the car's line, a search filter, an id and the ficha fields.
     // A new free-text field has to be added here on purpose.
-    const textosPermitidos = new Set(["slug", "linea", "buscar", "marca", "modelo", "version", "segmento"])
+    const textosPermitidos = new Set(["slug", "ref", "linea", "buscar", "marca", "modelo", "version", "segmento"])
     for (const tool of tools) {
       for (const { nombre, tipo } of propiedades(tool.inputSchema)) {
         expect(nombre).not.toMatch(/instruc|comando|prompt|accion|hacer|orden|pedido|mensaje/i)
@@ -72,7 +74,7 @@ describe("el catálogo del MCP", () => {
   it("las tools de lectura se declaran de solo lectura y marcar_vendido como destructiva", async () => {
     const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
     const hint = (nombre: string) => tools.find((t) => t.name === nombre)!.annotations
-    for (const lectura of ["buscar_stock", "ver_auto", "stock_desactualizado"]) {
+    for (const lectura of ["buscar_stock", "ver_auto", "stock_desactualizado", "ver_pedido", "listar_pedidos_del_dia"]) {
       expect(hint(lectura)?.readOnlyHint).toBe(true)
     }
     expect(hint("cargar_auto")?.readOnlyHint).toBe(false)

@@ -4,6 +4,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js"
 import { ErrorDeRegla } from "@/lib/errores"
 import { registrarUso } from "@/lib/operador"
 import type { Contexto, Herramienta } from "./herramienta"
+import { herramientasPedidos } from "./herramientas/pedidos"
 import { herramientasStock } from "./herramientas/stock"
 
 // Autonomy to read, determinism to act. Reading tools are free; every writing tool does exactly one thing
@@ -21,7 +22,7 @@ El precio de un auto del stock es público y lo dicta una persona: se pone con p
 Para cargar un auto: cargar_auto con la línea que mandaron y los links de las fotos. Las fotos pegadas en este chat no le llegan al servidor: hacen falta links https (o rutas de archivo si el servidor corre en la compu del operador). Después completar_auto con lo que haya quedado sin deducir, poner_precio y publicar_auto.`
 
 // Each change that builds something registers its own tools here: the MCP grows with the product.
-const HERRAMIENTAS: Herramienta[] = [...herramientasStock] as Herramienta[]
+const HERRAMIENTAS: Herramienta[] = [...herramientasStock, ...herramientasPedidos] as Herramienta[]
 
 export function crearServidor(contexto: Contexto): McpServer {
   const servidor = new McpServer({ name: "llave", version: "1.0.0" }, { instructions: INSTRUCCIONES_MCP })

@@ -4,7 +4,8 @@ import type { OperadorMcp } from "@/lib/operador"
 
 // What a tool is. Kept apart from the server so the tool modules don't import it back.
 
-export type Contexto = { operador: OperadorMcp; archivosLocales: boolean }
+// origen: the app's URL, to build case links. Unknown over stdio.
+export type Contexto = { operador: OperadorMcp; archivosLocales: boolean; origen?: string }
 
 export type Herramienta<S extends ZodRawShape = ZodRawShape> = {
   nombre: string
