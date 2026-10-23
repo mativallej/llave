@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requerirRol } from "@/lib/auth/rol"
+import { ErrorDeRegla } from "@/lib/errores"
 import type { CampoFicha } from "@/lib/stock/campos"
 import {
   agregarFotos,
@@ -9,7 +10,6 @@ import {
   completarAuto,
   crearAutoDesdeLinea,
   despublicarAuto,
-  ErrorStock,
   marcarVendido,
   moverAuto,
   ponerPrecio,
@@ -31,7 +31,7 @@ async function intentar<T extends object>(fn: () => Promise<T>, slug?: string): 
     if (slug) revalidatePath(`/admin/stock/${slug}`)
     return { ok: true, ...valor }
   } catch (e) {
-    if (e instanceof ErrorStock) return { ok: false, error: e.message }
+    if (e instanceof ErrorDeRegla) return { ok: false, error: e.message }
     console.error(e)
     return { ok: false, error: "No se pudo guardar. Probá de nuevo en un momento." }
   }

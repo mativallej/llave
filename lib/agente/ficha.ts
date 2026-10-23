@@ -1,6 +1,8 @@
 import "server-only"
+import { APIConnectionTimeoutError } from "openai"
 import { zodTextFormat } from "openai/helpers/zod"
 import { z } from "zod"
+import { ErrorDeRegla } from "@/lib/errores"
 import { CAMPOS_FICHA, type CampoFicha, SEGMENTOS, type Segmento, TIPOS_FOTO, type TipoFoto } from "@/lib/stock/campos"
 import { CONFIG_BASE, openai } from "./cliente"
 
@@ -24,6 +26,13 @@ Completás un campo solo si está en la evidencia. Si no está, va null. Nunca l
 
 No opinás del estado del auto ni de su precio.`
 
+export class ErrorFicha extends ErrorDeRegla {}
+
+// Two tries of 20 seconds stay under the MCP client's 60: whoever is loading the car hears that it failed,
+// instead of a timeout while the car gets created behind their back and then loaded again.
+const PLAZO_MS = 20_000
+export const SE_DEMORO = "La lectura de la línea tardó demasiado y el auto no se cargó. Probá de nuevo en un momento."
+
 export type Ficha = {
   marca: string | null
   modelo: string | null
@@ -38,7 +47,9 @@ export type Ficha = {
 // Reads the line and the photos and returns what it could deduce plus what it couldn't.
 // Never invents: what isn't in the evidence comes back null and listed as missing.
 export async function extraerFicha(linea: string, urlsFotos: string[]): Promise<Ficha> {
-  const respuesta = await openai().responses.parse({
+  const respuesta = await openai()
+    .responses.parse(
+      {
     ...CONFIG_BASE,
     instructions: INSTRUCCIONES,
     input: [
@@ -51,7 +62,13 @@ export async function extraerFicha(linea: string, urlsFotos: string[]): Promise<
       },
     ],
     text: { format: zodTextFormat(Respuesta, "ficha") },
-  })
+      },
+      { timeout: PLAZO_MS, maxRetries: 1 },
+    )
+    .catch((e: unknown) => {
+      if (e instanceof APIConnectionTimeoutError) throw new ErrorFicha(SE_DEMORO)
+      throw e
+    })
 
   const leida = respuesta.output_parsed
   if (!leida) throw new Error("extraerFicha: the model returned no parsed ficha")

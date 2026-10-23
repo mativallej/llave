@@ -13,6 +13,7 @@ export default async function LayoutPanel({ children }: { children: React.ReactN
           <Link href="/admin/tablero">Tablero</Link>
           <Link href="/admin/casos">Casos</Link>
           <Link href="/admin/stock">Stock</Link>
+          {operador.rol === "falkenberg" && <Link href="/admin/usuarios">Usuarios</Link>}
           {operador.rol === "falkenberg" && <Link href="/admin/config">Config</Link>}
         </nav>
         <form action={salir} className="flex items-center gap-3 text-sm text-muted-foreground">

@@ -16,8 +16,9 @@ export const rolActual = cache(async (): Promise<Operador | null> => {
   } = await auth.auth.getUser()
   if (!user) return null
 
-  const { data } = await db().from("perfil").select("id, nombre, rol").eq("id", user.id).maybeSingle()
-  if (!data) return null
+  const { data } = await db().from("perfil").select("id, nombre, rol, suspendido_en").eq("id", user.id).maybeSingle()
+  // Suspended: an open session loses access here, on its next request.
+  if (!data || data.suspendido_en) return null
   return { id: data.id, nombre: data.nombre, rol: data.rol as Rol }
 })
 

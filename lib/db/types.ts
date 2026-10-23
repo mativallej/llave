@@ -329,18 +329,21 @@ export type Database = {
           id: string
           nombre: string
           rol: string
+          suspendido_en: string | null
         }
         Insert: {
           creado_en?: string
           id: string
           nombre: string
           rol: string
+          suspendido_en?: string | null
         }
         Update: {
           creado_en?: string
           id?: string
           nombre?: string
           rol?: string
+          suspendido_en?: string | null
         }
         Relationships: []
       }
