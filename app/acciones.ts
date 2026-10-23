@@ -1,7 +1,9 @@
 "use server"
 
 import { headers } from "next/headers"
+import { CONTENIDO } from "@/lib/contenido"
 import { ErrorDeRegla } from "@/lib/errores"
+import { dentroDelLimite, ErrorLimite, ipDe } from "@/lib/limites"
 import { enviarPedido, type PedidoEnviado, subidasDeCliente } from "@/lib/pedido/canal"
 import { PedidoEsquema } from "@/lib/pedido/esquema"
 
@@ -20,7 +22,10 @@ async function intentar<T extends object>(fn: () => Promise<T>): Promise<Resulta
 }
 
 export async function pedirSubidasCliente(cantidad: number) {
-  return intentar(async () => ({ subidas: await subidasDeCliente(cantidad) }))
+  return intentar(async () => {
+    if (!(await dentroDelLimite("subidas", ipDe(await headers())))) throw new ErrorLimite(CONTENIDO.limites.subidas)
+    return { subidas: await subidasDeCliente(cantidad) }
+  })
 }
 
 export async function mandarPedido(datos: {
@@ -30,8 +35,9 @@ export async function mandarPedido(datos: {
   chat: string
 }): Promise<Resultado<{ enviado: PedidoEnviado }>> {
   return intentar(async () => {
-    const pedido = PedidoEsquema.parse(datos.pedido)
     const encabezados = await headers()
+    if (!(await dentroDelLimite("pedido", ipDe(encabezados)))) throw new ErrorLimite(CONTENIDO.limites.pedido)
+    const pedido = PedidoEsquema.parse(datos.pedido)
     const host = encabezados.get("x-forwarded-host") ?? encabezados.get("host") ?? "localhost:3000"
     const protocolo = encabezados.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")
     const enviado = await enviarPedido({

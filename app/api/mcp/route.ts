@@ -1,5 +1,6 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js"
-import { resolverOperador, tokenDe } from "@/lib/operador"
+import { dentroDelLimite, ipDe } from "@/lib/limites"
+import { resolverOperador, tokenBienFormado, tokenDe } from "@/lib/operador"
 import { crearServidor } from "@/mcp/servidor"
 
 // The MCP over HTTP, for any Claude. Stateless: one server per request, which is what a serverless
@@ -8,8 +9,21 @@ import { crearServidor } from "@/mcp/servidor"
 export const dynamic = "force-dynamic"
 
 async function manejar(pedido: Request): Promise<Response> {
-  const operador = await resolverOperador(tokenDe(pedido))
+  const token = tokenDe(pedido)
+  const operador = await resolverOperador(token)
   if (!operador) {
+    // A well-formed token that belongs to nobody already went to the database: those attempts count, and
+    // past the limit the answer is 429. Missing or malformed ones never reach it, so they cost nothing.
+    if (tokenBienFormado(token) && !(await dentroDelLimite("mcpSinToken", ipDe(pedido.headers)))) {
+      return Response.json(
+        {
+          jsonrpc: "2.0",
+          error: { code: -32029, message: "Demasiados intentos sin un token válido desde esta conexión. Probá de nuevo dentro de 10 minutos." },
+          id: null,
+        },
+        { status: 429 },
+      )
+    }
     return Response.json(
       {
         jsonrpc: "2.0",

@@ -21,6 +21,16 @@ export const CONTENIDO = {
     error: "Se cortó la conexión. Probá mandarlo de nuevo.",
   },
 
+  // When a connection goes past a limit: what to do and when. Tuerca's are in its voice.
+  limites: {
+    chat: "Vamos muy rápido para mí. Esperá unos minutos y seguimos desde acá.",
+    chatDia: "Por hoy llegamos al máximo de mensajes desde esta conexión. Probá de nuevo mañana.",
+    chatTotal: "Estoy con muchas conversaciones a la vez. Probá de nuevo dentro de una hora.",
+    pedido: "Se mandaron muchos pedidos desde esta conexión. Probá de nuevo dentro de una hora.",
+    subidas: "Se subieron muchas fotos desde esta conexión: probá de nuevo dentro de una hora. Podés mandar el pedido igual, sin fotos.",
+    caso: "Se abrieron muchos links seguidos desde esta conexión. Probá de nuevo dentro de 10 minutos.",
+  },
+
   panel: {
     titulo: "Tu pedido",
     entrega: "Entregás",

@@ -14,9 +14,13 @@ export function tokenDe(pedido: Request): string | null {
   return portador ?? new URL(pedido.url).searchParams.get("token")
 }
 
+export function tokenBienFormado(token: string | null): token is string {
+  return Boolean(token && FORMATO_TOKEN.test(token))
+}
+
 // Null for a missing, malformed or unknown token. A malformed one never reaches the database.
 export async function resolverOperador(token: string | null): Promise<OperadorMcp | null> {
-  if (!token || !FORMATO_TOKEN.test(token)) return null
+  if (!tokenBienFormado(token)) return null
   const { data, error } = await db().from("operador").select("token, nombre, rol").eq("token", token).maybeSingle()
   if (error) throw new Error(`resolverOperador: ${error.message}`)
   return data ? { token: data.token, nombre: data.nombre, rol: data.rol as Rol } : null

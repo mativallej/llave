@@ -26,7 +26,7 @@ Matías lo pidió el 23/10/2026.
 | Pedidos enviados | 1 hora | 10 |
 | Links para subir fotos | 1 hora | 30 |
 | Aperturas del link del caso (`/c/[token]`) | 10 minutos | 120 |
-| `/api/mcp` sin un token válido | 10 minutos | 20 |
+| `/api/mcp` con un token que no es de nadie | 10 minutos | 20 |
 | Intentos de login del admin | 15 minutos | 10 |
 
 **Cuando se pasa, se dice qué hacer y cuándo**, que es el mantra aplicado a un error:
@@ -34,6 +34,8 @@ Matías lo pidió el 23/10/2026.
 - El formulario dice que se puede probar de nuevo en una hora.
 - El MCP devuelve 429.
 - El login dice cuándo se puede volver a probar.
+
+**Sin token o con un token mal formado, `/api/mcp` no llega a la base**, como pide el spec del MCP. Esos intentos no cuestan nada y no cuentan. Cuentan los tokens bien formados que no son de nadie, que sí hacen una consulta.
 
 **La IP no se guarda.** La clave es un hash SHA-256 de la IP, y la fila se borra a los dos días.
 

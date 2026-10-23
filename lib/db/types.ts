@@ -249,6 +249,24 @@ export type Database = {
         }
         Relationships: []
       }
+      limite: {
+        Row: {
+          clave: string
+          cuenta: number
+          ventana: string
+        }
+        Insert: {
+          clave: string
+          cuenta?: number
+          ventana: string
+        }
+        Update: {
+          clave?: string
+          cuenta?: number
+          ventana?: string
+        }
+        Relationships: []
+      }
       nota: {
         Row: {
           autor: string | null
@@ -338,6 +356,10 @@ export type Database = {
           acceso_rol: string
           primera: boolean
         }[]
+      }
+      contar_uso: {
+        Args: { p_clave: string; p_maximo: number; p_segundos: number }
+        Returns: boolean
       }
       crear_pedido: {
         Args: {

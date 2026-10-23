@@ -1,5 +1,7 @@
 import { turno } from "@/lib/agente/tuerca"
+import { CONTENIDO } from "@/lib/contenido"
 import { registrar } from "@/lib/db/eventos"
+import { dentroDelLimite, ipDe } from "@/lib/limites"
 import { stockCanal } from "@/lib/pedido/canal"
 import { TurnoEsquema } from "@/lib/pedido/esquema"
 import { urlsFirmadas } from "@/lib/stock/stock"
@@ -11,6 +13,17 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 export async function POST(pedido: Request): Promise<Response> {
+  // Before anything else, malformed requests included: each turn is a paid call to the model.
+  const ip = ipDe(pedido.headers)
+  const [porIp, porDia, total] = await Promise.all([
+    dentroDelLimite("chat", ip),
+    dentroDelLimite("chatDia", ip),
+    dentroDelLimite("chatTotal", ip),
+  ])
+  if (!total) return Response.json({ error: CONTENIDO.limites.chatTotal }, { status: 429 })
+  if (!porDia) return Response.json({ error: CONTENIDO.limites.chatDia }, { status: 429 })
+  if (!porIp) return Response.json({ error: CONTENIDO.limites.chat }, { status: 429 })
+
   const cuerpo = TurnoEsquema.safeParse(await pedido.json().catch(() => null))
   if (!cuerpo.success) return Response.json({ error: "Pedido inválido." }, { status: 400 })
   const { chat, historial, mensaje, pedido: estado } = cuerpo.data

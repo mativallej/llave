@@ -22,8 +22,8 @@ El chat, el envío de pedidos, los links de subida, el link del caso, el MCP sin
 
 #### Scenario: Tokens al azar contra el MCP
 
-- **WHEN** una misma IP pasa los 20 intentos sin un token válido en 10 minutos
-- **THEN** `/api/mcp` responde 429
+- **WHEN** una misma IP pasa los 20 intentos con tokens bien formados que no son de nadie en 10 minutos
+- **THEN** `/api/mcp` responde 429, y sin token o con uno mal formado sigue respondiendo 401 sin tocar la base
 
 ### Requirement: Los turnos de Tuerca tienen un techo total
 

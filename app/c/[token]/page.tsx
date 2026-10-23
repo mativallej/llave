@@ -15,6 +15,8 @@ import {
 } from "@/lib/caso/caso"
 import { esEstado } from "@/lib/caso/estados"
 import { armarMostrador } from "@/lib/caso/mostrador"
+import { CONTENIDO } from "@/lib/contenido"
+import { dentroDelLimite, ipDe } from "@/lib/limites"
 
 // The token is the authentication: no login. It resolves the role and renders one of the two views.
 export const dynamic = "force-dynamic"
@@ -27,7 +29,16 @@ export const metadata: Metadata = {
 
 export default async function PaginaCaso({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const agente = (await headers()).get("user-agent")
+  const encabezados = await headers()
+  // Past the limit the token isn't even looked up, and the open isn't recorded.
+  if (!(await dentroDelLimite("caso", ipDe(encabezados)))) {
+    return (
+      <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col justify-center px-4 py-6">
+        <p>{CONTENIDO.limites.caso}</p>
+      </main>
+    )
+  }
+  const agente = encabezados.get("user-agent")
   const acceso = await resolverAcceso(token, { registrarApertura: !esVistaPrevia(agente) })
   if (!acceso) notFound()
 

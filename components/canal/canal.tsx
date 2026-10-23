@@ -109,6 +109,12 @@ export function Canal({
         body: JSON.stringify({ chat, historial, mensaje, pedido: pedidoRef.current }),
         signal: control.signal,
       })
+      if (respuesta.status === 429) {
+        // Past a limit: the server says what to do and when, in Tuerca's voice.
+        const { error } = (await respuesta.json().catch(() => ({}))) as { error?: string }
+        actualizarTuerca(idTuerca, (m) => ({ ...m, texto: error ?? CONTENIDO.asistente.error }))
+        return
+      }
       if (!respuesta.ok || !respuesta.body) throw new Error(`chat ${respuesta.status}`)
 
       const lector = respuesta.body.getReader()
