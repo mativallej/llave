@@ -84,3 +84,17 @@ export function estadosDonde(accion: Accion): EstadoAbierto[] {
 }
 
 export const DIAS_VIGENCIA_PROPUESTA = 7
+
+// Who has to move the case in each state: the client, the seller, or Falkenberg (the appraisal, the
+// search). It's read from the state; nothing assigns cases to people.
+export const QUIEN_TIENE: Record<Estado, "Cliente" | "Vendedor" | "Falkenberg" | "Nadie"> = {
+  pendiente_fotos: "Cliente",
+  pendiente_cita: "Vendedor",
+  pendiente_inspeccion: "Vendedor",
+  pendiente_tasacion: "Falkenberg",
+  pendiente_conseguir: "Falkenberg",
+  pendiente_propuesta: "Vendedor",
+  propuesta_publicada: "Cliente",
+  pendiente_entrega: "Vendedor",
+  cerrado: "Nadie",
+}

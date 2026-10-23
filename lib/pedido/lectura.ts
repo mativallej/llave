@@ -13,7 +13,7 @@ export class ErrorLectura extends ErrorDeRegla {}
 
 const ZONA_HORARIA = "America/Argentina/Buenos_Aires"
 
-type FilaCaso = {
+export type FilaCaso = {
   id: string
   ref: string
   estado: string
@@ -30,7 +30,7 @@ type FilaCaso = {
 
 const COLUMNAS = "id, ref, estado, creado_en, nombre, telefono, auto_entrega, salida, auto_busca, auto_ids, zona, precio_salida"
 
-async function resumir(casos: FilaCaso[]) {
+export async function resumir(casos: FilaCaso[]) {
   const ids = [...new Set(casos.flatMap((c) => c.auto_ids))]
   const { data: autos } = ids.length
     ? await db().from("auto").select("id, marca, modelo, version, anio, precio").in("id", ids)

@@ -5,6 +5,7 @@ import { ErrorDeRegla } from "@/lib/errores"
 import { registrarUso } from "@/lib/operador"
 import type { Contexto, Herramienta } from "./herramienta"
 import { herramientasCasos } from "./herramientas/casos"
+import { herramientasMetricas } from "./herramientas/metricas"
 import { herramientasPedidos } from "./herramientas/pedidos"
 import { herramientasStock } from "./herramientas/stock"
 
@@ -22,13 +23,16 @@ El precio de un auto del stock es público y lo dicta una persona: se pone con p
 
 Para cargar un auto: cargar_auto con la línea que mandaron y los links de las fotos. Las fotos pegadas en este chat no le llegan al servidor: hacen falta links https (o rutas de archivo si el servidor corre en la compu del operador). Después completar_auto con lo que haya quedado sin deducir, poner_precio y publicar_auto.
 
-Un caso se mueve de a un paso, con la herramienta de ese paso. cargar_tasacion es solo de Andrés y lleva el número que dijo él: si no te lo dictó, no la llames. Para cerrar un caso perdido preguntá el motivo y si se cayó porque no le contestamos a tiempo; no lo supongas. Lo que no tiene herramienta se hace desde el link del caso, que devuelve ver_caso.`
+Un caso se mueve de a un paso, con la herramienta de ese paso. cargar_tasacion es solo de Andrés y lleva el número que dijo él: si no te lo dictó, no la llames. Para cerrar un caso perdido preguntá el motivo y si se cayó porque no le contestamos a tiempo; no lo supongas. Lo que no tiene herramienta se hace desde el link del caso, que devuelve ver_caso.
+
+Las métricas se dicen siempre con su numerador y su denominador, nunca un porcentaje solo: un 80% de 5 respuestas no es un 80%. Un null es "sin datos", no cero. Los números no traen umbral: no digas si una métrica está bien o mal.`
 
 // Each change that builds something registers its own tools here: the MCP grows with the product.
 const HERRAMIENTAS: Herramienta[] = [
   ...herramientasStock,
   ...herramientasPedidos,
   ...herramientasCasos,
+  ...herramientasMetricas,
 ] as Herramienta[]
 
 export function crearServidor(contexto: Contexto): McpServer {

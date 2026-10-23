@@ -10,6 +10,8 @@ export default async function LayoutPanel({ children }: { children: React.ReactN
     <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
         <nav className="flex items-center gap-4 text-sm font-medium">
+          <Link href="/admin/tablero">Tablero</Link>
+          <Link href="/admin/casos">Casos</Link>
           <Link href="/admin/stock">Stock</Link>
           {operador.rol === "falkenberg" && <Link href="/admin/config">Config</Link>}
         </nav>

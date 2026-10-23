@@ -1,7 +1,7 @@
 // Checks that no button ends up with text the colour of its background: for every visible button and
 // button-styled link, the contrast between its text and its effective background (walking up through
 // transparent ancestors). Runs in dark and light. Colours come back as oklch(), so each one is painted on a
-// canvas and read back as RGB.
+// canvas and read back as RGB. Logs into /admin first when E2E_EMAIL and E2E_PASSWORD are set.
 //
 //   node scripts/verificar-contraste.mjs http://localhost:3100 / /admin/login
 
@@ -19,6 +19,13 @@ let fallas = 0
 
 for (const tema of ["dark", "light"]) {
   const pagina = await navegador.newPage({ viewport: { width: 400, height: 860 }, colorScheme: tema })
+  if (process.env.E2E_EMAIL && process.env.E2E_PASSWORD) {
+    await pagina.goto(`${base}/admin/login`)
+    await pagina.getByLabel("Email").fill(process.env.E2E_EMAIL)
+    await pagina.getByLabel("Contraseña").fill(process.env.E2E_PASSWORD)
+    await pagina.getByRole("button", { name: "Entrar" }).click()
+    await pagina.waitForURL("**/admin/stock")
+  }
   for (const ruta of rutas) {
     await pagina.goto(`${base}${ruta}`, { waitUntil: "networkidle" })
     const resultados = await pagina.evaluate(() => {

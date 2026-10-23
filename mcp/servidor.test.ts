@@ -28,12 +28,13 @@ function propiedades(schema: unknown): { nombre: string; tipo: unknown; opciones
 }
 
 describe("el catálogo del MCP", () => {
-  it("expone las tools de stock, las de lectura del canal y las del caso", async () => {
+  it("expone las tools de stock, las de lectura del canal, las del caso y las del tablero", async () => {
     const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
     expect(tools.map((t) => t.name).sort()).toEqual(
       [
         "agendar_cita",
         "agregar_nota",
+        "avisos",
         "buscar_stock",
         "cargar_auto",
         "cargar_tasacion",
@@ -46,6 +47,7 @@ describe("el catálogo del MCP", () => {
         "marcar_inspeccionado",
         "marcar_vendido",
         "marcar_venta_nueva",
+        "metricas",
         "poner_precio",
         "publicar_auto",
         "publicar_propuesta",
@@ -109,7 +111,7 @@ describe("el catálogo del MCP", () => {
     const { tools } = await (await conectar(crearServidor({ operador: vendedor, archivosLocales: false }))).listTools()
     const hint = (nombre: string) => tools.find((t) => t.name === nombre)!.annotations
     const lecturas = ["buscar_stock", "ver_auto", "stock_desactualizado", "ver_pedido", "listar_pedidos_del_dia"]
-    for (const lectura of [...lecturas, "listar_casos", "ver_caso", "historial_telefono"]) {
+    for (const lectura of [...lecturas, "listar_casos", "ver_caso", "historial_telefono", "metricas", "avisos"]) {
       expect(hint(lectura)?.readOnlyHint).toBe(true)
     }
     expect(hint("cargar_auto")?.readOnlyHint).toBe(false)
