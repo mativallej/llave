@@ -17,9 +17,9 @@ const OCTUBRE = periodo("mes", AHORA)
 function tablero(eventos: EventoMetrica[], casos: CasoMetrica[]): Tablero {
   return {
     periodo: OCTUBRE,
-    metricas: calcularMetricas({ eventos, casos, gastos: [], periodo: OCTUBRE, ahora: AHORA }),
+    metricas: calcularMetricas({ eventos, casos, gastos: [], periodo: OCTUBRE, capacidadSemanal: 15, ahora: AHORA }),
     embudo: embudo(eventos, OCTUBRE),
-    avisos: calcularAvisos({ eventos, casos, ahora: AHORA }),
+    avisos: calcularAvisos({ eventos, casos, capacidadSemanal: 15, ahora: AHORA }),
   }
 }
 

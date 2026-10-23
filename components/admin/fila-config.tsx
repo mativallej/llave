@@ -13,6 +13,7 @@ const TITULO: Record<ClaveConfig, string> = {
   whatsapp_abelardo: "WhatsApp de Abelardo",
   garantias_falkenberg: "Garantías de Falkenberg",
   plazo_contacto: "Plazo de contacto",
+  citas_por_semana: "Citas por semana",
 }
 
 export function FilaConfig({ clave, valor, nota }: { clave: ClaveConfig; valor: string; nota: string }) {
@@ -50,7 +51,7 @@ function Texto({ clave, valor }: { clave: ClaveConfig; valor: string }) {
         id={clave}
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
-        inputMode={clave === "whatsapp_abelardo" ? "tel" : "text"}
+        inputMode={clave === "whatsapp_abelardo" ? "tel" : clave === "citas_por_semana" ? "numeric" : "text"}
         placeholder="Vacío"
         disabled={pendiente}
       />

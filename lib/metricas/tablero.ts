@@ -1,4 +1,5 @@
 import "server-only"
+import { leerConfig } from "@/lib/config"
 import { db } from "@/lib/db/server"
 import { ErrorDeRegla } from "@/lib/errores"
 import {
@@ -35,16 +36,17 @@ export async function leerTablero(clave: ClavePeriodo, ahora = new Date()) {
   const p = periodo(clave, ahora)
   // The cohort's events all come after its requests; the week's may start before the month.
   const desde = [p.desde, inicioDeSemana(ahora)].sort()[0]
-  const [eventos, casos, gastos] = await Promise.all([
+  const [eventos, casos, gastos, capacidadSemanal] = await Promise.all([
     todas<EventoMetrica>((a, b) => db().from("evento").select("caso_id, tipo, en, meta").gte("en", desde).order("id").range(a, b)),
     todas<CasoMetrica>((a, b) => db().from("caso").select("id, creado_en, cerro, venta_nueva, renegocio").order("creado_en").range(a, b)),
     leerGastos(p.meses),
+    leerConfig("citas_por_semana"),
   ])
   return {
     periodo: p,
-    metricas: calcularMetricas({ eventos, casos, gastos, periodo: p, ahora }),
+    metricas: calcularMetricas({ eventos, casos, gastos, periodo: p, capacidadSemanal, ahora }),
     embudo: embudo(eventos, p),
-    avisos: calcularAvisos({ eventos, casos, ahora }),
+    avisos: calcularAvisos({ eventos, casos, capacidadSemanal, ahora }),
   }
 }
 

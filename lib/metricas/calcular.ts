@@ -33,9 +33,6 @@ export type Avisos = {
   citasSemana: number
 }
 
-// The week's capacity, from the spec: at 15 completed visits a week, the ads stop before a queue builds up.
-export const CAPACIDAD_SEMANAL = 15
-
 // Argentina has no daylight saving: always UTC-3.
 const HORAS_ARGENTINA = 3
 const DIA_MS = 86_400_000
@@ -129,6 +126,8 @@ export function calcularMetricas(datos: {
   casos: CasoMetrica[]
   gastos: GastoMes[]
   periodo: Periodo
+  // Completed visits a week before the queue builds up. It lives in config (citas_por_semana).
+  capacidadSemanal: number
   ahora?: Date
 }): Metricas {
   const { eventos, casos, gastos, periodo: p } = datos
@@ -167,7 +166,7 @@ export function calcularMetricas(datos: {
     citaAPropuesta: { ...conversion(cumplidas.length, con("propuesta_publicada").length), medianaDias: mediana(dias) },
     propuestaAVenta: conversion(con("propuesta_publicada").length, con("venta_cerrada").length),
     ventaNueva: { si, respondidas, ventas: vendidos.length, sinPreguntar: vendidos.length - respondidas, valor: respondidas > 0 ? si / respondidas : null },
-    citasSemana: { cumplidas: citasDeLaSemana(eventos, datos.ahora), capacidad: CAPACIDAD_SEMANAL },
+    citasSemana: { cumplidas: citasDeLaSemana(eventos, datos.ahora), capacidad: datos.capacidadSemanal },
     perdidosPorSilencio: { porSilencio, perdidos: perdidos.length },
   }
 }
@@ -179,12 +178,17 @@ function citasDeLaSemana(eventos: EventoMetrica[], ahora = new Date()): number {
 
 // The three warnings. They don't depend on the period: a renegotiation or an unasked sale doesn't go away
 // because the month changed.
-export function calcularAvisos(datos: { eventos: EventoMetrica[]; casos: CasoMetrica[]; ahora?: Date }): Avisos {
+export function calcularAvisos(datos: {
+  eventos: EventoMetrica[]
+  casos: CasoMetrica[]
+  capacidadSemanal: number
+  ahora?: Date
+}): Avisos {
   const citasSemana = citasDeLaSemana(datos.eventos, datos.ahora)
   return {
     renegociaciones: datos.casos.filter((c) => c.renegocio).length,
     ventasSinPreguntar: datos.casos.filter((c) => c.cerro === true && c.venta_nueva === null).length,
-    semanaLlena: citasSemana >= CAPACIDAD_SEMANAL,
+    semanaLlena: citasSemana >= datos.capacidadSemanal,
     citasSemana,
   }
 }

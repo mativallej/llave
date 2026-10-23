@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest"
 import {
-  CAPACIDAD_SEMANAL,
   type CasoMetrica,
   calcularAvisos,
   calcularMetricas,
@@ -9,6 +8,9 @@ import {
   inicioDeSemana,
   periodo,
 } from "./calcular"
+
+// The capacity config starts with.
+const CAPACIDAD_SEMANAL = 15
 
 // Friday 23 October 2026, noon in Argentina. The week started Monday the 19th.
 const AHORA = new Date("2026-10-23T15:00:00Z")
@@ -78,7 +80,7 @@ const CASOS = [
 ]
 
 describe("las ocho métricas, sobre un set fijo", () => {
-  const m = calcularMetricas({ eventos: EVENTOS, casos: CASOS, gastos: [{ mes: "2026-10-01", monto: 300000 }], periodo: OCTUBRE, ahora: AHORA })
+  const m = calcularMetricas({ eventos: EVENTOS, casos: CASOS, gastos: [{ mes: "2026-10-01", monto: 300000 }], periodo: OCTUBRE, capacidadSemanal: CAPACIDAD_SEMANAL, ahora: AHORA })
 
   it("dan los ocho números calculados a mano", () => {
     expect(m.ventas).toEqual({ total: 2, meses: 1 })
@@ -112,6 +114,7 @@ describe("la métrica de ventas nuevas", () => {
       casos: ids.map((id, i) => caso(id, { cerro: true, venta_nueva: respuestas[i] ?? null })),
       gastos: [],
       periodo: OCTUBRE,
+      capacidadSemanal: CAPACIDAD_SEMANAL,
       ahora: AHORA,
     })
     expect(m.ventaNueva).toEqual({ si: 3, respondidas: 5, ventas: 12, sinPreguntar: 7, valor: 0.6 })
@@ -120,7 +123,7 @@ describe("la métrica de ventas nuevas", () => {
 
 describe("sin denominador no hay métrica", () => {
   it("todo lo que divide es null, nunca 0", () => {
-    const m = calcularMetricas({ eventos: [], casos: [], gastos: [], periodo: OCTUBRE, ahora: AHORA })
+    const m = calcularMetricas({ eventos: [], casos: [], gastos: [], periodo: OCTUBRE, capacidadSemanal: CAPACIDAD_SEMANAL, ahora: AHORA })
     expect(m.costoPorVenta).toEqual({ gasto: null, ventas: 0, valor: null, mesesSinGasto: ["2026-10-01"] })
     expect(m.pedidoACita.valor).toBeNull()
     expect(m.citaAPropuesta).toEqual({ de: 0, a: 0, valor: null, medianaDias: null })
@@ -134,6 +137,7 @@ describe("sin denominador no hay métrica", () => {
       casos: [caso("A", { cerro: true })],
       gastos: [{ mes: "2026-10-01", monto: 300000 }],
       periodo: periodo("3meses", AHORA),
+      capacidadSemanal: CAPACIDAD_SEMANAL,
       ahora: AHORA,
     })
     expect(m.costoPorVenta).toEqual({ gasto: 300000, ventas: 1, valor: null, mesesSinGasto: ["2026-08-01", "2026-09-01"] })
@@ -166,13 +170,21 @@ describe("los avisos", () => {
   it("cuentan renegociaciones y ventas sin preguntar de siempre, y la semana se llena en 15", () => {
     const catorce = Array.from({ length: CAPACIDAD_SEMANAL - 1 }, (_, i) => ev(`s${i}`, "cita_cumplida", "10-20"))
     const casos = [...CASOS, caso("R", { cerro: true, venta_nueva: false, renegocio: true })]
-    expect(calcularAvisos({ eventos: catorce, casos, ahora: AHORA })).toEqual({
+    expect(calcularAvisos({ eventos: catorce, casos, capacidadSemanal: CAPACIDAD_SEMANAL, ahora: AHORA })).toEqual({
       renegociaciones: 1,
       ventasSinPreguntar: 1,
       semanaLlena: false,
       citasSemana: 14,
     })
     const quince = [...catorce, ev("s15", "cita_cumplida", "10-22")]
-    expect(calcularAvisos({ eventos: quince, casos: [], ahora: AHORA })).toMatchObject({ semanaLlena: true, citasSemana: 15 })
+    expect(calcularAvisos({ eventos: quince, casos: [], capacidadSemanal: CAPACIDAD_SEMANAL, ahora: AHORA })).toMatchObject({ semanaLlena: true, citasSemana: 15 })
+  })
+
+  it("la capacidad sale de config: con 20, quince citas no llenan la semana y veinte sí", () => {
+    const citas = (n: number) => Array.from({ length: n }, (_, i) => ev(`c${i}`, "cita_cumplida", "10-21"))
+    expect(calcularAvisos({ eventos: citas(15), casos: [], capacidadSemanal: 20, ahora: AHORA }).semanaLlena).toBe(false)
+    expect(calcularAvisos({ eventos: citas(20), casos: [], capacidadSemanal: 20, ahora: AHORA }).semanaLlena).toBe(true)
+    const m = calcularMetricas({ eventos: citas(15), casos: [], gastos: [], periodo: OCTUBRE, capacidadSemanal: 20, ahora: AHORA })
+    expect(m.citasSemana).toEqual({ cumplidas: 15, capacidad: 20 })
   })
 })

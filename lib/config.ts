@@ -9,7 +9,12 @@ type Valores = {
   whatsapp_abelardo: string
   garantias_falkenberg: boolean
   plazo_contacto: string
+  citas_por_semana: number
 }
+
+// What the week's capacity was before it moved to config. Used only if the row can't be read as a number:
+// a warning that never shows because of a typo is worse than one at the usual number.
+const CITAS_POR_SEMANA_SI_FALLA = 15
 
 export type ClaveConfig = keyof Valores
 
@@ -22,8 +27,19 @@ const filas = cache(async (): Promise<Map<string, string>> => {
 export async function leerConfig<K extends ClaveConfig>(clave: K): Promise<Valores[K]> {
   const valor = (await filas()).get(clave) ?? ""
   // Fails closed: anything but the literal "true" keeps the guarantees off.
-  const leido = clave === "garantias_falkenberg" ? valor === "true" : valor
-  return leido as Valores[K]
+  if (clave === "garantias_falkenberg") return (valor === "true") as Valores[K]
+  if (clave === "citas_por_semana") {
+    const numero = Number(valor)
+    if (Number.isInteger(numero) && numero > 0) return numero as Valores[K]
+    console.error(`config: citas_por_semana no es un entero positivo ("${valor}"); se usa ${CITAS_POR_SEMANA_SI_FALLA}.`)
+    return CITAS_POR_SEMANA_SI_FALLA as Valores[K]
+  }
+  return valor as Valores[K]
+}
+
+// The contact window is one of Falkenberg's five guarantees (the 48 hours): it goes out only with them on.
+export function plazoParaMostrar(garantiasFalkenberg: boolean, plazoContacto: string): string {
+  return garantiasFalkenberg ? plazoContacto : ""
 }
 
 export type FilaConfig = { clave: ClaveConfig; valor: string; nota: string; actualizado_en: string }
@@ -55,6 +71,10 @@ function normalizar(clave: ClaveConfig, valor: string): string {
       throw new ErrorConfig("El WhatsApp va con código de país y de área, sin el 15: por ejemplo 5493492000000.")
     }
     return digitos
+  }
+  if (clave === "citas_por_semana") {
+    if (!/^[1-9]\d{0,2}$/.test(texto)) throw new ErrorConfig("Las citas por semana van como un número entero, por ejemplo 15.")
+    return texto
   }
   return texto
 }
