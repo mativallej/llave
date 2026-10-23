@@ -102,19 +102,25 @@ export type Database = {
           auto_busca: string | null
           auto_entrega: Json | null
           auto_ids: string[]
+          buscando_desde: string | null
           cerro: boolean | null
+          cita_en: string | null
           creado_en: string
           estado: string
+          fotos_en: string | null
           id: string
           motivo_perdida: string | null
           nombre: string | null
           precio_salida: number | null
+          precio_salida_en: string | null
+          proximo_aviso: string | null
           ref: string
           renegocio: boolean
           salida: string | null
           telefono: string
           ultimo_evento: string | null
           valor_toma: number | null
+          valor_toma_en: string | null
           vence_prop: string | null
           venta_nueva: boolean | null
           zona: string | null
@@ -123,19 +129,25 @@ export type Database = {
           auto_busca?: string | null
           auto_entrega?: Json | null
           auto_ids?: string[]
+          buscando_desde?: string | null
           cerro?: boolean | null
+          cita_en?: string | null
           creado_en?: string
           estado: string
+          fotos_en?: string | null
           id?: string
           motivo_perdida?: string | null
           nombre?: string | null
           precio_salida?: number | null
+          precio_salida_en?: string | null
+          proximo_aviso?: string | null
           ref?: string
           renegocio?: boolean
           salida?: string | null
           telefono: string
           ultimo_evento?: string | null
           valor_toma?: number | null
+          valor_toma_en?: string | null
           vence_prop?: string | null
           venta_nueva?: boolean | null
           zona?: string | null
@@ -144,19 +156,25 @@ export type Database = {
           auto_busca?: string | null
           auto_entrega?: Json | null
           auto_ids?: string[]
+          buscando_desde?: string | null
           cerro?: boolean | null
+          cita_en?: string | null
           creado_en?: string
           estado?: string
+          fotos_en?: string | null
           id?: string
           motivo_perdida?: string | null
           nombre?: string | null
           precio_salida?: number | null
+          precio_salida_en?: string | null
+          proximo_aviso?: string | null
           ref?: string
           renegocio?: boolean
           salida?: string | null
           telefono?: string
           ultimo_evento?: string | null
           valor_toma?: number | null
+          valor_toma_en?: string | null
           vence_prop?: string | null
           venta_nueva?: boolean | null
           zona?: string | null
@@ -313,6 +331,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      abrir_acceso: {
+        Args: { p_token: string }
+        Returns: {
+          acceso_caso: string
+          acceso_rol: string
+          primera: boolean
+        }[]
+      }
       crear_pedido: {
         Args: {
           p_auto_busca: string
@@ -333,6 +359,49 @@ export type Database = {
           caso_id: string
           caso_ref: string
         }[]
+      }
+      mover_caso: {
+        Args: {
+          p_cambios: Json
+          p_caso: string
+          p_desde: string[]
+          p_evento: string
+          p_hacia: string
+          p_meta: Json
+        }
+        Returns: {
+          auto_busca: string | null
+          auto_entrega: Json | null
+          auto_ids: string[]
+          buscando_desde: string | null
+          cerro: boolean | null
+          cita_en: string | null
+          creado_en: string
+          estado: string
+          fotos_en: string | null
+          id: string
+          motivo_perdida: string | null
+          nombre: string | null
+          precio_salida: number | null
+          precio_salida_en: string | null
+          proximo_aviso: string | null
+          ref: string
+          renegocio: boolean
+          salida: string | null
+          telefono: string
+          ultimo_evento: string | null
+          valor_toma: number | null
+          valor_toma_en: string | null
+          vence_prop: string | null
+          venta_nueva: boolean | null
+          zona: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "caso"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       nueva_ref: { Args: never; Returns: string }
     }
