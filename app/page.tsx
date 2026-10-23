@@ -1,12 +1,32 @@
-// Placeholder until `canal-publico` builds the real landing.
-export default function Page() {
+import { Canal } from "@/components/canal/canal"
+import { ComoFunciona } from "@/components/canal/como-funciona"
+import { Garantias } from "@/components/canal/garantias"
+import { leerConfig } from "@/lib/config"
+import { CONTENIDO } from "@/lib/contenido"
+import { stockCanal } from "@/lib/pedido/canal"
+
+// The stock and the config are read on every request: publishing a car or switching on the guarantees
+// shows up here without a redeploy.
+export const dynamic = "force-dynamic"
+
+export default async function Inicio() {
+  const [stock, garantiasFalkenberg, plazoContacto] = await Promise.all([
+    stockCanal(),
+    leerConfig("garantias_falkenberg"),
+    leerConfig("plazo_contacto"),
+  ])
+
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-3 px-4">
-      <h1 className="text-2xl font-semibold">Falkenberg Meyer Automotores</h1>
-      <p className="text-muted-foreground">
-        Estamos armando este canal. La página la construye el change{" "}
-        <code>canal-publico</code>.
-      </p>
+    <main className="flex min-h-dvh flex-col">
+      <Canal stock={stock} destacados={stock.slice(0, 6)} plazoContacto={plazoContacto} />
+      <ComoFunciona />
+      <Garantias mostrarFalkenberg={garantiasFalkenberg} />
+      <footer className="mx-auto w-full max-w-3xl px-4 py-8 text-sm text-muted-foreground">
+        <p>
+          {CONTENIDO.marca} · {CONTENIDO.lugar}
+        </p>
+        <p>{CONTENIDO.asistente.aclaracion}</p>
+      </footer>
     </main>
   )
 }
