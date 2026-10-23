@@ -263,6 +263,30 @@ export type Database = {
           },
         ]
       }
+      operador: {
+        Row: {
+          creado_en: string
+          nombre: string
+          rol: string
+          token: string
+          ultimo_uso: string | null
+        }
+        Insert: {
+          creado_en?: string
+          nombre: string
+          rol: string
+          token: string
+          ultimo_uso?: string | null
+        }
+        Update: {
+          creado_en?: string
+          nombre?: string
+          rol?: string
+          token?: string
+          ultimo_uso?: string | null
+        }
+        Relationships: []
+      }
       perfil: {
         Row: {
           creado_en: string

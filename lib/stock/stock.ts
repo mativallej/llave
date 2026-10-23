@@ -1,8 +1,11 @@
 import "server-only"
 import { randomUUID } from "node:crypto"
+import { readFile } from "node:fs/promises"
+import { isAbsolute } from "node:path"
 import { extraerFicha } from "@/lib/agente/ficha"
 import { db } from "@/lib/db/server"
 import type { Tables } from "@/lib/db/types"
+import { ErrorDeRegla } from "@/lib/errores"
 import { CAMPOS_FICHA, type CampoFicha, type TipoFoto } from "./campos"
 
 // The stock's domain operations. The admin's server actions and the MCP tools both call these:
@@ -14,10 +17,11 @@ export const DIAS_DESACTUALIZADO = 14
 export const DESTACADOS = 6
 const BUCKET = "fotos"
 const MAX_FOTOS_POR_CARGA = 12
-const RUTA_FOTO_STOCK = /^stock\/[0-9a-f-]{36}\.jpg$/
+const RUTA_FOTO_STOCK = /^stock\/[0-9a-f-]{36}\.(jpg|png|webp)$/
+const MAX_BYTES_FOTO = 10 * 1024 * 1024
 
-// A rule broken by the operator. The message is shown as is, in the admin and through the MCP.
-export class ErrorStock extends Error {}
+// A stock rule broken by the operator. The message is shown as is, in the admin and through the MCP.
+export class ErrorStock extends ErrorDeRegla {}
 
 // What the client sees on the card. The version may stay empty; the price is checked on its own.
 const OBLIGATORIOS_PARA_PUBLICAR = ["marca", "modelo", "anio", "km"] as const
@@ -241,6 +245,65 @@ export async function urlsFirmadas(rutas: string[], segundos = 3600): Promise<Re
     if (firmada.path && firmada.signedUrl) urls[firmada.path] = firmada.signedUrl
   }
   return urls
+}
+
+// For the MCP: photos come as https links (a photo pasted in a Claude chat never reaches a tool as a
+// file), or as local paths when the server runs over stdio on the operator's machine. Each one is checked
+// by its first bytes, copied into the private bucket, and its path returned.
+export async function importarFotos(fuentes: string[], { archivosLocales = false } = {}): Promise<string[]> {
+  if (fuentes.length > MAX_FOTOS_POR_CARGA) throw new ErrorStock(`Como mucho ${MAX_FOTOS_POR_CARGA} fotos por vez.`)
+  const rutas: string[] = []
+  for (const fuente of fuentes) {
+    const bytes = await leerFoto(fuente, archivosLocales)
+    const tipo = tipoImagen(bytes)
+    if (!tipo) {
+      throw new ErrorStock(
+        `"${fuente}" no es una foto JPG, PNG o WEBP. Si es un link de Google Drive o de una galería, usá el de descarga directa.`,
+      )
+    }
+    const ruta = `stock/${randomUUID()}.${tipo.extension}`
+    const { error } = await db().storage.from(BUCKET).upload(ruta, bytes, { contentType: tipo.mime })
+    if (error) throw new Error(`importarFotos: ${error.message}`)
+    rutas.push(ruta)
+  }
+  return rutas
+}
+
+async function leerFoto(fuente: string, archivosLocales: boolean): Promise<Uint8Array> {
+  if (fuente.startsWith("https://")) {
+    let respuesta: Response
+    try {
+      respuesta = await fetch(fuente, { signal: AbortSignal.timeout(20_000) })
+    } catch {
+      throw new ErrorStock(`No pude bajar la foto de "${fuente}".`)
+    }
+    if (!respuesta.ok) throw new ErrorStock(`El link "${fuente}" respondió ${respuesta.status}.`)
+    if (Number(respuesta.headers.get("content-length") ?? 0) > MAX_BYTES_FOTO) throw new ErrorStock("Cada foto puede pesar hasta 10 MB.")
+    const bytes = new Uint8Array(await respuesta.arrayBuffer())
+    if (bytes.length > MAX_BYTES_FOTO) throw new ErrorStock("Cada foto puede pesar hasta 10 MB.")
+    return bytes
+  }
+  if (archivosLocales && isAbsolute(fuente)) {
+    const bytes = new Uint8Array(await readFile(fuente).catch(() => {
+      throw new ErrorStock(`No encuentro el archivo "${fuente}".`)
+    }))
+    if (bytes.length > MAX_BYTES_FOTO) throw new ErrorStock("Cada foto puede pesar hasta 10 MB.")
+    return bytes
+  }
+  throw new ErrorStock(
+    archivosLocales
+      ? "Cada foto va como link https o como ruta absoluta a un archivo."
+      : "Cada foto va como link https. Las fotos pegadas en el chat no le llegan al servidor.",
+  )
+}
+
+function tipoImagen(bytes: Uint8Array): { mime: string; extension: string } | null {
+  const empieza = (...firma: number[]) => firma.every((b, i) => bytes[i] === b)
+  if (empieza(0xff, 0xd8, 0xff)) return { mime: "image/jpeg", extension: "jpg" }
+  if (empieza(0x89, 0x50, 0x4e, 0x47)) return { mime: "image/png", extension: "png" }
+  const webp = String.fromCharCode(...bytes.slice(8, 12))
+  if (empieza(0x52, 0x49, 0x46, 0x46) && webp === "WEBP") return { mime: "image/webp", extension: "webp" }
+  return null
 }
 
 // ─── Internas ────────────────────────────────────────────────────────────────

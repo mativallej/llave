@@ -1,6 +1,7 @@
 import "server-only"
 import { cache } from "react"
 import { db } from "./db/server"
+import { ErrorDeRegla } from "./errores"
 
 // Operational data from the config table. It changes for business reasons, so it lives in a row and not in
 // an env var: switching on Falkenberg's guarantees is editing a row, not a redeploy.
@@ -34,7 +35,7 @@ export async function listarConfig(): Promise<FilaConfig[]> {
   return data as FilaConfig[]
 }
 
-export class ErrorConfig extends Error {}
+export class ErrorConfig extends ErrorDeRegla {}
 
 export async function escribirConfig(clave: ClaveConfig, valor: string): Promise<void> {
   const limpio = normalizar(clave, valor)
