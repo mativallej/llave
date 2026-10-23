@@ -100,9 +100,9 @@ export async function historialTelefono(telefono: string, salvo?: string) {
   return (data ?? []).map(({ ref, estado, cerro, creado_en }) => ({ ref, estado, cerro, creado_en }))
 }
 
-export async function listarCasos(filtro: { estado?: Estado; sinMovimientoDias?: number } = {}) {
+export async function listarCasos(filtro: { estados?: readonly Estado[]; sinMovimientoDias?: number } = {}) {
   let consulta = db().from("caso").select().order("creado_en", { ascending: false })
-  if (filtro.estado) consulta = consulta.eq("estado", filtro.estado)
+  if (filtro.estados) consulta = consulta.in("estado", [...filtro.estados])
   if (filtro.sinMovimientoDias !== undefined) {
     const limite = new Date(Date.now() - filtro.sinMovimientoDias * 86_400_000).toISOString()
     consulta = consulta.lt("ultimo_evento", limite)

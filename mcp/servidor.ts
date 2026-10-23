@@ -4,6 +4,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js"
 import { ErrorDeRegla } from "@/lib/errores"
 import { registrarUso } from "@/lib/operador"
 import type { Contexto, Herramienta } from "./herramienta"
+import { herramientasCasos } from "./herramientas/casos"
 import { herramientasPedidos } from "./herramientas/pedidos"
 import { herramientasStock } from "./herramientas/stock"
 
@@ -19,10 +20,16 @@ No estimás nunca el valor del auto que entrega un cliente, ni un rango, ni "apr
 
 El precio de un auto del stock es público y lo dicta una persona: se pone con poner_precio, en una llamada propia, y no lo propongas vos.
 
-Para cargar un auto: cargar_auto con la línea que mandaron y los links de las fotos. Las fotos pegadas en este chat no le llegan al servidor: hacen falta links https (o rutas de archivo si el servidor corre en la compu del operador). Después completar_auto con lo que haya quedado sin deducir, poner_precio y publicar_auto.`
+Para cargar un auto: cargar_auto con la línea que mandaron y los links de las fotos. Las fotos pegadas en este chat no le llegan al servidor: hacen falta links https (o rutas de archivo si el servidor corre en la compu del operador). Después completar_auto con lo que haya quedado sin deducir, poner_precio y publicar_auto.
+
+Un caso se mueve de a un paso, con la herramienta de ese paso. cargar_tasacion es solo de Andrés y lleva el número que dijo él: si no te lo dictó, no la llames. Para cerrar un caso perdido preguntá el motivo y si se cayó porque no le contestamos a tiempo; no lo supongas. Lo que no tiene herramienta se hace desde el link del caso, que devuelve ver_caso.`
 
 // Each change that builds something registers its own tools here: the MCP grows with the product.
-const HERRAMIENTAS: Herramienta[] = [...herramientasStock, ...herramientasPedidos] as Herramienta[]
+const HERRAMIENTAS: Herramienta[] = [
+  ...herramientasStock,
+  ...herramientasPedidos,
+  ...herramientasCasos,
+] as Herramienta[]
 
 export function crearServidor(contexto: Contexto): McpServer {
   const servidor = new McpServer({ name: "llave", version: "1.0.0" }, { instructions: INSTRUCCIONES_MCP })
