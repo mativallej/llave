@@ -4,14 +4,13 @@
 
 Agregada en la ejecución, con el OK de Matías del 2026-10-22 ("borrá todo"). El proyecto de Supabase es del 3 de mayo y traía el esquema del SaaS multi-tenant: 8 tablas con datos de prueba, 5 funciones, 6 enums, 3 policies en `storage.objects`, 2 buckets vacíos, 1 usuario de auth y 3 migraciones que no están en el repo.
 
-- [ ] 0.1 Migración `borrar_modelo_descartado`: tablas, funciones, enums y las policies de `storage.objects`. Con `if exists`, así que en una base nueva no hace nada.
-  *Estado:* escrita en `supabase/migrations/`. Aplicarla con el MCP se cuelga a los 60 s, dos veces, sin aplicar nada: el MCP pide confirmación humana para sentencias destructivas (`drop table`, `drop function`, `drop policy`) y en esta sesión no hay dónde mostrarla. Las migraciones que no borran pasan al instante. **Espera que Matías la confirme o la corra en el SQL Editor.** El archivo se renombra a la versión que asigne el remoto.
+- [x] 0.1 Sacar el modelo viejo de `public`: tablas, funciones y enums.
+  *Verifica:* el `drop` por el MCP no sale. Se intentó seis veces y cada una corta a los 60 s, aun con una sola tabla sin dependencias (`interest_signups`). Una consulta en paralelo confirmó que la sentencia nunca llegó a la base (ningún `drop` en `pg_stat_activity` durante la espera): el MCP retiene los `drop` hasta una confirmación humana que esta sesión no puede mostrar. Mientras tanto, la migración `apartar_modelo_descartado` **mueve** todo al esquema `legado`, sin perder nada: fuera de la API (PostgREST expone solo `public`) y fuera de los tipos generados. Después, `public` → `acceso, auto, caso, config, evento, gasto_mes, nota`, y `legado` → las 8 tablas viejas.
 - [x] 0.2 Los dos buckets viejos (`lead-photos`, `stock-photos`) por la Storage API: Supabase no deja borrar `storage.buckets` por SQL.
   *Verifica:* los dos con 0 objetos; `DELETE /storage/v1/bucket/<id>` → "Successfully deleted" en ambos; la lista de buckets queda en `fotos`.
 - [x] 0.3 El usuario de `auth.users`, por la Admin API.
   *Verifica:* `DELETE /auth/v1/admin/users/<id>` → http 200; quedan 0 usuarios.
-- [ ] 0.4 Las tres filas viejas de `supabase_migrations.schema_migrations`, para que el historial del remoto sea el del repo.
-  *Estado:* va junto con la 0.1, por el mismo motivo.
+- [ ] 0.4 **El borrado definitivo, que corre Matías en el SQL Editor**: `supabase/migrations/20261023999999_borrar_modelo_descartado.sql` (las 3 policies viejas de `storage.objects` y `drop schema legado cascade`), y las tres filas viejas de `supabase_migrations.schema_migrations` (`20260503033635`, `20260503033701`, `20260503033707`). Después se renombra el archivo a la versión que quede en el historial.
 - **Se conserva** el event trigger `ensure_rls` → `rls_auto_enable()`: no lo crearon las migraciones viejas, es el de Supabase que prende RLS en cada tabla nueva.
 
 ## 1. Migraciones
@@ -49,8 +48,8 @@ Agregada en la ejecución, con el OK de Matías del 2026-10-22 ("borrá todo"). 
 
 ## 3. Tipos, cliente y helper de eventos
 
-- [ ] 3.1 Tipos generados en `lib/db/types.ts`. **No se escriben a mano.**
-  *Estado:* espera la 0.1. Hoy el generador (`generate_typescript_types` del MCP: el CLI no está linkeado) devuelve también las tablas y enums del modelo viejo, y escribirlas en `lib/` es justo lo que sacó `limpieza-scaffold`. Hasta entonces `npx tsc --noEmit` falla por el módulo `./types` faltante.
+- [x] 3.1 Tipos generados en `lib/db/types.ts`. **No se escriben a mano.**
+  *Verifica:* con el modelo viejo fuera de `public` (0.1), `generate_typescript_types` del MCP (el CLI no está linkeado) → las 7 tablas y `nueva_ref`, sin enums. Copiado tal cual a `lib/db/types.ts`. `npx tsc --noEmit` exit 0.
   *Verifica:* `supabase gen types typescript` y `npx tsc --noEmit` en exit 0.
 - [x] 3.2 Server client único en `lib/db/server.ts`.
   *Verifica:* `db()` con la service role, creado en el primer uso; los tests de integración lo usan contra el remoto y pasan.
@@ -71,5 +70,6 @@ Agregada en la ejecución, con el OK de Matías del 2026-10-22 ("borrá todo"). 
 
 ## 5. Verificación
 
-- [ ] 5.1 `pnpm install && npx tsc --noEmit && pnpm build`
+- [x] 5.1 `pnpm install && npx tsc --noEmit && pnpm build`
   *Verifica:* los tres en exit 0.
+  *Verifica, resultado:* desde cero (`rm -rf .next`): install exit 0, tsc exit 0, build exit 0; `pnpm test` → 7/7 (3 archivos). Se agregó `vite` como devDependency: `vitest.config.ts` usa su `loadEnv` para leer `.env.local`, y con pnpm estricto no se resuelve si no es directa.
