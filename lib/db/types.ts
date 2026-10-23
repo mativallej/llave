@@ -53,11 +53,13 @@ export type Database = {
           km: number | null
           marca: string | null
           modelo: string | null
+          orden: number | null
           precio: number | null
           publicado: boolean
           segmento: string | null
           slug: string
           vendido_en: string | null
+          version: string | null
         }
         Insert: {
           actualizado_en?: string
@@ -68,11 +70,13 @@ export type Database = {
           km?: number | null
           marca?: string | null
           modelo?: string | null
+          orden?: number | null
           precio?: number | null
           publicado?: boolean
           segmento?: string | null
           slug: string
           vendido_en?: string | null
+          version?: string | null
         }
         Update: {
           actualizado_en?: string
@@ -83,11 +87,13 @@ export type Database = {
           km?: number | null
           marca?: string | null
           modelo?: string | null
+          orden?: number | null
           precio?: number | null
           publicado?: boolean
           segmento?: string | null
           slug?: string
           vendido_en?: string | null
+          version?: string | null
         }
         Relationships: []
       }
@@ -256,6 +262,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      perfil: {
+        Row: {
+          creado_en: string
+          id: string
+          nombre: string
+          rol: string
+        }
+        Insert: {
+          creado_en?: string
+          id: string
+          nombre: string
+          rol: string
+        }
+        Update: {
+          creado_en?: string
+          id?: string
+          nombre?: string
+          rol?: string
+        }
+        Relationships: []
       }
     }
     Views: {
