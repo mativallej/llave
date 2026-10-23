@@ -13,11 +13,16 @@ const DIA_Y_HORA = new Intl.DateTimeFormat("es-AR", {
   month: "long",
   hour: "2-digit",
   minute: "2-digit",
+  hourCycle: "h23",
   timeZone: ZONA,
 })
 
 export const fechaCorta = (iso: string) => DIA.format(new Date(iso))
-export const fechaConHora = (iso: string) => DIA_Y_HORA.format(new Date(iso))
+// "jueves 29 de octubre a las 10:00": the 24-hour clock, as it's written here.
+export function fechaConHora(iso: string): string {
+  const parte = Object.fromEntries(DIA_Y_HORA.formatToParts(new Date(iso)).map((p) => [p.type, p.value]))
+  return `${parte.weekday} ${parte.day} de ${parte.month} a las ${parte.hour}:${parte.minute}`
+}
 // A plain date (no time) is a calendar day: it's read as such, not shifted by the time zone.
 const diaCalendario = (dia: string) => DIA.format(new Date(`${dia}T12:00:00-03:00`))
 

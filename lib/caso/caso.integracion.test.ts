@@ -15,6 +15,8 @@ import {
   marcarInspeccionado,
   marcarRenegocio,
   marcarVentaNueva,
+  notasDelCaso,
+  pedirAlCliente,
   perderCaso,
   publicarPropuesta,
   resolverAcceso,
@@ -139,6 +141,14 @@ describe.skipIf(!conBase)("el caso, de punta a punta contra la base", () => {
     expect((await marcarVentaNueva(casoId, "si")).venta_nueva).toBe(true)
     expect((await marcarVentaNueva(casoId, "no_preguntado")).venta_nueva).toBeNull()
     expect((await marcarVentaNueva(casoId, "si")).venta_nueva).toBe(true)
+  })
+
+  it("pedirle algo al cliente arma el WhatsApp ya escrito y lo deja anotado", async () => {
+    const link = await pedirAlCliente(casoId, "documentacion", "Prueba")
+    const url = new URL(link)
+    expect(url.origin + url.pathname).toBe(`https://wa.me/${TELEFONO_NORMALIZADO.slice(1)}`)
+    expect(url.searchParams.get("text")).toMatch(/^Hola Prueba caso, te escribo de Falkenberg por tu pedido LL-\d{4}\. ¿Me mandás la documentación del auto que entregás\?$/)
+    expect((await notasDelCaso(casoId)).at(-1)).toMatchObject({ texto: "Se le pidió la documentación del auto que entregás.", autor: "Prueba" })
   })
 
   it("un caso perdido por silencio propio lo dice en el evento", async () => {

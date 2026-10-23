@@ -33,6 +33,18 @@ describe("el mostrador del cliente", () => {
     expect(h).not.toContain("diferencia")
   })
 
+  it("el turno se dice con el día y la hora de Argentina, en 24 horas", () => {
+    const h = html({
+      ...BASE,
+      estado: "pendiente_inspeccion",
+      fotos_en: "2026-10-21T15:00:00Z",
+      cita_en: "2026-10-29T13:00:00Z",
+      eventos: [...BASE.eventos, { tipo: "cita_agendada", en: "2026-10-22T15:00:00Z" }],
+    })
+    expect(h).toContain("Tu turno es el jueves 29 de octubre a las 10:00.")
+    expect(h).not.toMatch(/a\. m\.|p\. m\./)
+  })
+
   it("con la propuesta publicada, muestra los dos números, la diferencia y hasta cuándo vale", () => {
     const h = html({
       ...BASE,
