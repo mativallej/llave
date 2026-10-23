@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { type AutoCanal, PEDIDO_VACIO, type Pedido } from "@/lib/pedido/tipos"
-import { type EventoTurno, herramientas, turno } from "./tuerca"
+import { type EventoTurno, herramientas, SE_CORTO, turno } from "./tuerca"
 
 const conOpenAI = Boolean(process.env.OPENAI_API_KEY)
 
@@ -22,6 +22,8 @@ async function conversar(texto: string, pedido: Pedido = PEDIDO_VACIO) {
     eventos.push(evento)
   }
   const fin = eventos.find((e) => e.tipo === "fin") as Extract<EventoTurno, { tipo: "fin" }>
+  // A cut turn tests no rule: it fails saying so, and the "turno:" log says why.
+  expect(fin.texto, "el turno se cortó; mirá el log de turno").not.toBe(SE_CORTO)
   return { eventos, texto: fin.texto }
 }
 

@@ -54,7 +54,7 @@ describe.skipIf(!conTodo)("las tools de stock contra la base y el modelo", () =>
     const [lado, otroLado] = InMemoryTransport.createLinkedPair()
     cliente = new Client({ name: "prueba", version: "1.0.0" })
     await Promise.all([crearServidor({ operador, archivosLocales: false }).connect(lado), cliente.connect(otroLado)])
-  })
+  }, 30_000)
 
   afterAll(async () => {
     const { data: autos } = await db().from("auto").select("fotos").in("slug", slugs)

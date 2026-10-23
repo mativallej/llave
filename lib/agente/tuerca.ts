@@ -144,7 +144,7 @@ export type EntradaTurno = {
 const MAXIMO_DE_VUELTAS = 6
 // A stalled stream must not leave the client looking at a screen that doesn't move.
 const PLAZO_POR_VUELTA_MS = 45_000
-const SE_CORTO = "Se me cortó la conexión. ¿Me repetís lo último?"
+export const SE_CORTO = "Se me cortó la conexión. ¿Me repetís lo último?"
 
 function aEntrada(mensaje: MensajeHistorial, urlDeFoto: EntradaTurno["urlDeFoto"]): ResponseInputItem {
   if (mensaje.rol === "tuerca") return { role: "assistant", content: mensaje.texto }
@@ -175,7 +175,7 @@ export async function* turno(entrada: EntradaTurno): AsyncGenerator<EventoTurno>
   ]
 
   for (let vuelta = 0; vuelta < MAXIMO_DE_VUELTAS; vuelta++) {
-    let salida: ResponseInputItem[] = []
+    let salida: ResponseInputItem[] | null = null
     try {
       const flujo = await openai().responses.create(
         {
@@ -199,8 +199,15 @@ export async function* turno(entrada: EntradaTurno): AsyncGenerator<EventoTurno>
           yield { tipo: "texto", delta: evento.delta }
         } else if (evento.type === "response.completed") {
           salida = evento.response.output as ResponseInputItem[]
+        } else if (evento.type === "response.incomplete" || evento.type === "response.failed") {
+          const { incomplete_details, error } = evento.response
+          throw new Error(`${evento.type}: ${JSON.stringify(incomplete_details ?? error)}`)
+        } else if (evento.type === "error") {
+          throw new Error(`error en el stream: ${evento.code ?? ""} ${evento.message}`)
         }
       }
+      // A stream that ends without saying it completed is a cut, not an empty answer.
+      if (salida === null) throw new Error("el stream terminó sin response.completed")
     } catch (e) {
       console.error("turno:", e)
       const aviso = `${textoTotal ? " " : ""}${SE_CORTO}`
@@ -224,6 +231,13 @@ export async function* turno(entrada: EntradaTurno): AsyncGenerator<EventoTurno>
       input.push({ type: "function_call_output", call_id: llamada.call_id, output: resultado })
     }
     separar = true
+  }
+
+  // The client never gets an empty turn: that's the silent failure, where nothing errors and nobody knows.
+  if (!textoTotal.trim()) {
+    console.error("turno: terminó sin texto para el cliente")
+    textoTotal = SE_CORTO
+    yield { tipo: "texto", delta: SE_CORTO }
   }
 
   yield { tipo: "fin", texto: textoTotal.trim(), pedido }

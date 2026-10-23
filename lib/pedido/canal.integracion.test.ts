@@ -52,7 +52,7 @@ describe.skipIf(!conBase)("enviarPedido contra la base", () => {
 
     const { data: fotos } = await db().storage.from("fotos").list(`casos/${caso!.id}`)
     expect(fotos!.map((f) => f.name)).toEqual(["1.jpg"])
-  })
+  }, 30_000)
 
   it("un duplicado exacto en los últimos minutos devuelve el mismo pedido, sin crear otro caso", async () => {
     const pedido: Pedido = { ...PEDIDO_VACIO, entrega: false, salida: "0km", busca: "un 0km chico (prueba)" }
