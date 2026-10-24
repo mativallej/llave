@@ -15,6 +15,9 @@ const ANDRES: Usuario = {
   ultimoIngreso: null,
 }
 
+// Las contraseñas reales se generan al azar en el servidor y no se guardan: esto es un texto de prueba.
+const CLAVE_DE_PRUEBA = "clave-de-prueba-no-real"
+
 const fila = (usuario: Usuario, esVos: boolean) =>
   renderToStaticMarkup(<FilaUsuario usuario={usuario} esVos={esVos} ingreso="Nunca entró" />)
 
@@ -43,8 +46,8 @@ describe("la fila de un usuario", () => {
   })
 
   it("la contraseña se muestra con el aviso de que no vuelve", () => {
-    const h = renderToStaticMarkup(<ContrasenaUnaVez email="a@b.test" password="abcDEF123_-xyz12" />)
-    expect(h).toContain("abcDEF123_-xyz12")
+    const h = renderToStaticMarkup(<ContrasenaUnaVez email="a@b.test" password={CLAVE_DE_PRUEBA} />)
+    expect(h).toContain(CLAVE_DE_PRUEBA)
     expect(h).toContain("No se vuelve a mostrar")
   })
 })
