@@ -63,8 +63,8 @@ Imprime el token una sola vez. Para revocarlo se borra su fila de la tabla `oper
 **Casos** (de `caso-seguimiento`)
 
 - Lectura: `listar_casos(estado?, antiguedad?)`, `ver_caso(ref)`, `historial_telefono(telefono)`. Ninguna devuelve la tasación.
-- Escritura, un paso cada una: `agendar_cita(ref, fecha)`, `marcar_inspeccionado(ref)`, `cargar_tasacion(ref, valor_toma)` (solo rol `falkenberg`), `publicar_propuesta(ref)`, `cerrar_caso(ref, cerro, motivo?, por_silencio?)`, `agregar_nota(ref, texto)`, `marcar_venta_nueva(ref, respuesta)`.
-- Lo que no tiene herramienta (llegaron las fotos, no vino, se consiguió el auto, aceptó la propuesta) se hace desde el link del caso, que devuelve `ver_caso`.
+- Escritura, un paso cada una, en el orden del caso: `llegaron_fotos(ref)`, `agendar_cita(ref, fecha)`, `marcar_inspeccionado(ref)`, `cargar_tasacion(ref, valor_toma)` (solo rol `falkenberg`), `marcar_conseguido(ref, auto, precio)`, `publicar_propuesta(ref)`, `acepto_propuesta(ref)`, `cerrar_caso(ref, cerro, motivo?, por_silencio?)`. Además, `agregar_nota(ref, texto)` y `marcar_venta_nueva(ref, respuesta)`.
+- Lo que no tiene herramienta (no vino, el próximo aviso de una búsqueda, corregir un dato, la renegociación, pedirle algo al cliente) se hace desde el link del caso, que devuelve `ver_caso`.
 
 **Tablero** (de `tablero-metricas`)
 

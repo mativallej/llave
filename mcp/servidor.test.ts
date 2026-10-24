@@ -32,6 +32,7 @@ describe("el catálogo del MCP", () => {
     const { tools } = await (await conectar(crearServidor({ operador: vendedor }))).listTools()
     expect(tools.map((t) => t.name).sort()).toEqual(
       [
+        "acepto_propuesta",
         "agendar_cita",
         "agregar_nota",
         "avisos",
@@ -44,6 +45,8 @@ describe("el catálogo del MCP", () => {
         "historial_telefono",
         "listar_casos",
         "listar_pedidos_del_dia",
+        "llegaron_fotos",
+        "marcar_conseguido",
         "marcar_inspeccionado",
         "marcar_vendido",
         "marcar_venta_nueva",
@@ -98,6 +101,7 @@ describe("el catálogo del MCP", () => {
       "fecha",
       "texto",
       "motivo",
+      "auto",
     ])
     for (const tool of tools) {
       for (const { nombre, tipo, opciones } of propiedades(tool.inputSchema)) {
@@ -115,7 +119,9 @@ describe("el catálogo del MCP", () => {
       expect(hint(lectura)?.readOnlyHint).toBe(true)
     }
     expect(hint("cargar_auto")?.readOnlyHint).toBe(false)
-    expect(hint("agendar_cita")?.readOnlyHint).toBe(false)
+    for (const escritura of ["agendar_cita", "llegaron_fotos", "marcar_conseguido", "acepto_propuesta"]) {
+      expect(hint(escritura)?.readOnlyHint).toBe(false)
+    }
     for (const destructiva of ["marcar_vendido", "publicar_propuesta", "cerrar_caso"]) {
       expect(hint(destructiva)?.destructiveHint).toBe(true)
     }

@@ -1,16 +1,19 @@
 import "server-only"
 import { z } from "zod"
 import {
+  aceptoPropuesta,
   type Caso,
   agendarCita,
   agregarNota,
   cargarTasacion,
   casoPorRef,
   cerrarVenta,
+  conseguido,
   ErrorCaso,
   eventosDelCaso,
   historialTelefono,
   listarCasos,
+  llegaronFotos,
   marcarInspeccionado,
   marcarVentaNueva,
   notasDelCaso,
@@ -65,7 +68,7 @@ export const herramientasCasos = [
   definir({
     nombre: "ver_caso",
     descripcion:
-      "Un caso entero: el pedido, el estado, la cita, la propuesta, las marcas, lo que pasó con fecha, las notas y el link del caso. Lo que no tiene herramienta (llegaron las fotos, no vino, se consiguió el auto, aceptó la propuesta) se hace desde ese link.",
+      "Un caso entero: el pedido, el estado, la cita, la propuesta, las marcas, lo que pasó con fecha, las notas y el link del caso. Lo que no tiene herramienta (no vino, el próximo aviso de una búsqueda, corregir un dato, la renegociación, pedirle algo al cliente) se hace desde ese link.",
     lectura: true,
     entrada: { ref: REF },
     ejecutar: async ({ ref }, { origen }) => {
@@ -107,6 +110,15 @@ export const herramientasCasos = [
   }),
 
   definir({
+    nombre: "llegaron_fotos",
+    descripcion:
+      "El cliente mandó las fotos del auto que entrega (por WhatsApp o en persona), y el caso pasa a esperar la cita. Las fotos en sí no pasan por acá: esto marca el paso.",
+    lectura: false,
+    entrada: { ref: REF },
+    ejecutar: async ({ ref }) => despues(await llegaronFotos((await casoPorRef(ref)).id)),
+  }),
+
+  definir({
     nombre: "agendar_cita",
     descripcion: "Agenda la cita de un caso que la espera. Pasa a 'Cita agendada'.",
     lectura: false,
@@ -143,6 +155,22 @@ export const herramientasCasos = [
   }),
 
   definir({
+    nombre: "marcar_conseguido",
+    descripcion:
+      "Falkenberg consiguió el auto que el cliente buscaba: el caso pasa a la propuesta con ese auto y su precio. El precio es el del auto que se lleva el cliente, público; lo dice quien opera, nunca lo propongas vos.",
+    lectura: false,
+    entrada: {
+      ref: REF,
+      auto: z.string().min(1).max(120).describe("Qué auto se consiguió, por ejemplo 'Volkswagen Gol Trend 2016, 90.000 km'"),
+      precio: z.number().int().positive().describe("En pesos, el precio del auto conseguido que dijo quien opera"),
+    },
+    ejecutar: async ({ ref, auto, precio }) => {
+      const caso = await conseguido((await casoPorRef(ref)).id, { descripcion: auto, precio })
+      return { ...despues(caso), se_lleva: caso.auto_busca, precio_del_que_se_lleva: caso.precio_salida }
+    },
+  }),
+
+  definir({
     nombre: "publicar_propuesta",
     descripcion:
       "Publica la propuesta en el link del cliente: vale 7 días y desde ahí los datos del caso quedan fijos. Pide el precio del auto que se lleva y, si entrega uno, la tasación.",
@@ -156,9 +184,17 @@ export const herramientasCasos = [
   }),
 
   definir({
+    nombre: "acepto_propuesta",
+    descripcion: "El cliente aceptó la propuesta publicada: el caso pasa a esperar la entrega, donde cerrar_caso cierra la venta.",
+    lectura: false,
+    entrada: { ref: REF },
+    ejecutar: async ({ ref }) => despues(await aceptoPropuesta((await casoPorRef(ref)).id)),
+  }),
+
+  definir({
     nombre: "cerrar_caso",
     descripcion:
-      "Cierra un caso. Con cerro true es la venta: el caso tiene que estar esperando la entrega, y el auto del stock queda vendido. Con cerro false es un caso perdido: hacen falta el motivo y si se cayó porque no le contestamos a tiempo. Preguntalo, no lo supongas.",
+      "Cierra un caso. Con cerro true es la venta: el caso tiene que estar esperando la entrega (después de acepto_propuesta), y el auto del stock queda vendido. Con cerro false es un caso perdido: hacen falta el motivo y si se cayó porque no le contestamos a tiempo. Preguntalo, no lo supongas.",
     lectura: false,
     destructiva: true,
     entrada: {

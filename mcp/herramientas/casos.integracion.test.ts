@@ -12,7 +12,7 @@ import {
   accionTasacion,
   accionVentaNueva,
 } from "@/app/c/[token]/acciones"
-import { aceptoPropuesta, casoPorRef, eventosDelCaso, llegaronFotos, notasDelCaso } from "@/lib/caso/caso"
+import { casoPorRef, eventosDelCaso, llegaronFotos, notasDelCaso } from "@/lib/caso/caso"
 import { db } from "@/lib/db/server"
 import { enviarPedido } from "@/lib/pedido/canal"
 import { PEDIDO_VACIO } from "@/lib/pedido/tipos"
@@ -113,21 +113,19 @@ describe.skipIf(!conBase)("mover un caso por el MCP y por el link deja lo mismo"
 
   it("de la cita a la venta, cada paso deja el mismo evento y los mismos datos", async () => {
     const link = tokens[refs.link]
-    const pasos: [() => Promise<{ ok: boolean }>, Herramienta | (() => Promise<unknown>)][] = [
+    const pasos: [() => Promise<{ ok: boolean }>, Herramienta][] = [
       [() => accionAgendarCita(link, "2026-10-29T10:00"), { name: "agendar_cita", arguments: { ref: refs.mcp, fecha: "2026-10-29T10:00:00-03:00" } }],
       [() => accionInspeccionado(link), { name: "marcar_inspeccionado", arguments: { ref: refs.mcp } }],
       [() => accionTasacion(link, "9.000.000"), { name: "cargar_tasacion", arguments: { ref: refs.mcp, valor_toma: 9000000 } }],
       [() => accionPublicar(link), { name: "publicar_propuesta", arguments: { ref: refs.mcp } }],
-      // Accepting has no tool: it goes through the link. Here it's the same operation, called directly.
-      [() => accionAcepto(link), async () => aceptoPropuesta((await casoPorRef(refs.mcp)).id)],
+      [() => accionAcepto(link), { name: "acepto_propuesta", arguments: { ref: refs.mcp } }],
       [() => accionCerrarVenta(link), { name: "cerrar_caso", arguments: { ref: refs.mcp, cerro: true } }],
       [() => accionVentaNueva(link, "si"), { name: "marcar_venta_nueva", arguments: { ref: refs.mcp, respuesta: "si" } }],
       [() => accionNota(link, "Retira el sábado."), { name: "agregar_nota", arguments: { ref: refs.mcp, texto: "Retira el sábado." } }],
     ]
     for (const [porLink, porMcp] of pasos) {
       expect(await porLink()).toMatchObject({ ok: true })
-      if (typeof porMcp === "function") await porMcp()
-      else expect(await mcp(porMcp), porMcp.name).toMatchObject({ error: false })
+      expect(await mcp(porMcp), porMcp.name).toMatchObject({ error: false })
       expect((await casoPorRef(refs.mcp)).estado).toBe((await casoPorRef(refs.link)).estado)
     }
 
