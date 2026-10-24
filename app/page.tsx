@@ -1,25 +1,36 @@
-import { Header } from "@/components/header"
-import { Hero } from "@/components/hero"
-import { IntentCards } from "@/components/intent-cards"
-import { TrustSignals } from "@/components/trust-signals"
-import { WhatWeDo } from "@/components/what-we-do"
-import { HowItWorks } from "@/components/how-it-works"
-import { DeliveriesPreview } from "@/components/deliveries-preview"
-import { Footer } from "@/components/footer"
-import { WhatsAppStickyButton } from "@/components/whatsapp-sticky-button"
+import { Canal } from "@/components/canal/canal"
+import { ComoFunciona } from "@/components/canal/como-funciona"
+import { Garantias } from "@/components/canal/garantias"
+import { leerConfig, plazoParaMostrar } from "@/lib/config"
+import { CONTENIDO } from "@/lib/contenido"
+import { stockCanal } from "@/lib/pedido/canal"
 
-export default function HomePage() {
+// The stock and the config are read on every request: publishing a car or switching on the guarantees
+// shows up here without a redeploy.
+export const dynamic = "force-dynamic"
+
+export default async function Inicio() {
+  const [stock, garantiasFalkenberg, plazoContacto] = await Promise.all([
+    stockCanal(),
+    leerConfig("garantias_falkenberg"),
+    leerConfig("plazo_contacto"),
+  ])
+
   return (
-    <main className="min-h-dvh bg-background">
-      <Header />
-      <Hero />
-      <IntentCards />
-      <TrustSignals />
-      <WhatWeDo />
-      <HowItWorks />
-      <DeliveriesPreview />
-      <Footer />
-      <WhatsAppStickyButton />
+    <main className="flex min-h-dvh flex-col">
+      <Canal
+        stock={stock}
+        destacados={stock.slice(0, 6)}
+        plazoContacto={plazoParaMostrar(garantiasFalkenberg, plazoContacto)}
+      />
+      <ComoFunciona />
+      <Garantias mostrarFalkenberg={garantiasFalkenberg} />
+      <footer className="mx-auto w-full max-w-3xl px-4 py-8 text-sm text-muted-foreground">
+        <p>
+          {CONTENIDO.marca} · {CONTENIDO.lugar}
+        </p>
+        <p>{CONTENIDO.asistente.aclaracion}</p>
+      </footer>
     </main>
   )
 }

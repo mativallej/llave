@@ -9,7 +9,7 @@ El contexto de negocio, el mantra, las reglas duras de copy, las del agente y la
 - **Next.js 16.2.4** (App Router) · React 19 · TypeScript 5.7 · pnpm
 - **Tailwind 4** + shadcn/ui — estilo `new-york`, base `neutral`, iconos `lucide`
 - **Supabase** — Postgres + Storage + Auth. El Auth es solo del admin
-- **`@anthropic-ai/sdk`** con `claude-opus-5` para el agente
+- **`openai`** (Responses API) con `gpt-5.5-2026-04-23` para el agente de la web
 - **Vercel** para deploy
 
 ## Convenciones
@@ -25,4 +25,4 @@ El contexto de negocio, el mantra, las reglas duras de copy, las del agente y la
 
 ## Lo que nunca va al repo
 
-Datos reales de clientes, teléfonos, fotos de autos de clientes, el número de WhatsApp de Abelardo, claves de Supabase o de Anthropic. El seed son cuatro autos **marcados como ficticios**.
+Datos reales de clientes, teléfonos, fotos de autos de clientes, el número de WhatsApp de Abelardo, claves de Supabase o de OpenAI. El seed son cuatro autos **marcados como ficticios**.

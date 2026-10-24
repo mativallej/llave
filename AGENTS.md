@@ -68,7 +68,7 @@ Se rompen con facilidad y cada una cuesta plata o reputación.
 | Estilos | Tailwind 4 + shadcn/ui (`new-york`, base `neutral`, iconos `lucide`) |
 | Datos | Supabase — Postgres + Storage + Auth. **El Auth es solo para el admin**, nunca para el cliente |
 | Config operativa | La tabla `config`, server-only: el WhatsApp de Abelardo, el flag de garantías, la redacción del plazo. **Nada de esto va en env vars** — cambia por motivos de negocio y no debería pedir un deploy |
-| Agente | `@anthropic-ai/sdk`, `claude-opus-5` |
+| Agente | `openai` (Responses API), `gpt-5.5-2026-04-23`. Solo el agente de la web: el MCP lo usa el operador desde Claude |
 | Deploy | Vercel |
 | MCP | `@modelcontextprotocol/sdk` en TypeScript, en `mcp/`. HTTP en `/api/mcp` y stdio para desarrollo |
 | Paquetes | pnpm |
@@ -78,22 +78,27 @@ Se rompen con facilidad y cada una cuesta plata o reputación.
 ## La configuración del agente, que tiene una trampa
 
 ```ts
-const runner = client.beta.messages.toolRunner({
-  model: "claude-opus-5",
-  max_tokens: 4096,
-  output_config: { effort: "low" },
-  system: INSTRUCCIONES,          // con cache_control
-  tools: [...],
-  messages,
+const respuesta = await client.responses.create({
+  model: "gpt-5.5-2026-04-23",              // snapshot con fecha, nunca el alias
+  instructions: INSTRUCCIONES,              // fijo: el cache de OpenAI es por prefijo
+  input,                                    // la conversación entera, en cada turno
+  tools: [...],                             // zodResponsesFunction → strict: true
+  reasoning: { effort: "low" },
+  store: false,
+  include: ["reasoning.encrypted_content"],
   stream: true,
 });
 ```
 
-- `claude-opus-5` con **thinking adaptativo prendido**: no pases el parámetro `thinking`.
-- `output_config: { effort: "low" }` porque en Opus 5 el thinking está prendido por defecto y para un chat eso es latencia.
-- **NO pongas `thinking: {type: "disabled"}`.** Con el thinking apagado el modelo a veces escribe la llamada a la herramienta en el texto visible en vez de emitir un `tool_use`: el turno sale bien, la herramienta nunca corre, y **no hay error**. Acá eso significa que el panel no se llena y nadie se entera.
-- `strict: true` en las herramientas (usá `betaZodTool`).
-- **NO uses `eager_input_streaming`.** Los inputs son chicos; solo obliga a validar el parseo a mano a cambio de nada.
+- **El modelo es un snapshot con fecha, nunca el alias.** `gpt-5.5` a secas cambia cuando OpenAI lo actualiza, y con él cambia cómo habla Tuerca. El comportamiento del agente no se mueve sin un change: es el mantra aplicado al propio agente.
+- `reasoning: { effort: "low" }` porque es un chat, y el razonamiento largo es latencia.
+- **La trampa no depende del proveedor.** Un modelo puede escribir la llamada a la herramienta en el texto visible en vez de emitir un `function_call`: el turno sale bien, la herramienta nunca corre, y **no hay error**. Acá eso significa que el panel no se llena y nadie se entera. Por eso el effort no baja de `"low"`, y cualquier cambio de modelo o de effort pasa antes por el test de `canal-publico` que verifica que la herramienta corrió.
+- `strict: true` en las herramientas: usá `zodResponsesFunction` de `openai/helpers/zod`, que lo pone solo.
+- **El loop de herramientas es nuestro.** La Responses API no trae un runner: si la salida tiene un `function_call`, se ejecuta la herramienta, se agregan al `input` la salida del modelo y el `function_call_output`, y se vuelve a llamar. Son veinte líneas; no agregues un framework de agentes para eso.
+- **`store: false`.** La conversación tiene lo que el cliente cuenta de su auto, y no queda guardada del lado de OpenAI. Por eso cada turno manda la conversación entera, y `include: ["reasoning.encrypted_content"]` deja que el razonamiento vuelva cifrado dentro del loop sin que OpenAI lo guarde.
+- **`INSTRUCCIONES` no lleva nada del caso adentro.** El cache de OpenAI es automático y por prefijo: si el system prompt cambia de un cliente a otro, no se cachea nunca.
+
+Esto es solo el agente de la web: Tuerca y la ficha del stock. El MCP no llama a ningún modelo; el operador lo usa desde Claude, y eso no cambia.
 
 ## Las reglas duras del agente conversacional
 
